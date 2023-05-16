@@ -1,0 +1,8 @@
+mode: Mainline
+branches: {}
+ignore:
+  sha: []
+merge-message-formats: {}
+major-version-bump-message: 'breaking\s?(\(\w*\)|):'
+minor-version-bump-message: 'feat\s?(\(\w*\)|):'
+patch-version-bump-message: 'fix\s?(\(\w*\)|):'

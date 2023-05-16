@@ -8,12 +8,15 @@ runs:
       uses: gittools/actions/gitversion/setup@v0
       with:
         versionSpec: "5.x"
+    - name: GitVersion Show config
+      uses: gittools/actions/gitversion/execute@v0
+      with:
+          useConfigFile: true
+          configFilePath: ./.github/GitVersion.yml
+          additionalArguments: /showConfig
     - name: Determine GitVersion
       id: gitversion # id to later be referenced
       uses: gittools/actions/gitversion/execute@v0
       with:
-          additionalArguments: /overrideconfig mode=Mainline,major-version-bump-message='breaking\s?(\(\w*\)|):',minor-version-bump-message='feat\s?(\(\w*\)|):', patch-version-bump-message='fix\s?(\(\w*\)|):'
-    - name: Output SemVer
-      shell: bash
-      run: | 
-        echo "semVer=$(echo steps.gitversion.outputs.semVer)" >> $GITHUB_OUTPUT
+          useConfigFile: true
+          configFilePath: ./.github/GitVersion.yml
