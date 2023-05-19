@@ -21,5 +21,5 @@ runs:
         run: |
           git config user.name "GitHub Action"
           git config user.email "github-action@users.noreply.github.com>"
-          git tag -a "${{ steps.gitversion.outputs.semVer }}" -m "Tagged version ${{ steps.gitversion.outputs.semVer }}"
+          git tag -a "v${{ steps.gitversion.outputs.semVer }}" -m "Tagged version v${{ steps.gitversion.outputs.semVer }}"
           git push origin ${{ steps.gitversion.outputs.semVer }}
