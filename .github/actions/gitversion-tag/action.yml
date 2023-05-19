@@ -13,7 +13,7 @@ runs:
       uses: gittools/actions/gitversion/execute@v0
       with:
           useConfigFile: true
-          configFilePath: ./.github/GitVersion.yml
+          configFilePath: evoy-as/.github/.github/GitVersion.yml@main
     - name: Tag version
       if: ${{ github.ref == 'refs/heads/main' }}
       shell: bash
