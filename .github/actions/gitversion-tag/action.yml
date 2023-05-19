@@ -3,7 +3,6 @@ description: 'GitVersionTag action'
 
 runs:
   using: "composite"
-  if: ${{ github.ref == 'ref/heads/main' }}
   steps:
     - name: Install GitVersion
       uses: gittools/actions/gitversion/setup@v0
