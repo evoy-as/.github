@@ -12,11 +12,11 @@ runs:
       uses: gittools/actions/gitversion/execute@v0
       with:
           useConfigFile: true
-          configFilePath: evoy-as/.github/.github/GitVersion.yml@main
+          configFilePath: ../../GitVersion.yml
           additionalArguments: /showConfig
     - name: Determine GitVersion
       id: gitversion # id to later be referenced
       uses: gittools/actions/gitversion/execute@v0
       with:
           useConfigFile: true
-          configFilePath: evoy-as/.github/.github/GitVersion.yml@main
+          configFilePath: ../../GitVersion.yml
