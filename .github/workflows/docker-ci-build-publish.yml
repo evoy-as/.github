@@ -1,14 +1,8 @@
 ###
 ## This workflow is made specifically for .net 7 with workaround for multi platform build
 ###
-name: ci_build
+name: docker_ci_build_publish
 on: 
-    push:
-        branches: [ "main" ]
-        # Publish semver tags as releases.
-        tags: [ 'v*.*.*' ]
-    pull_request:
-        branches: [ "main" ]
     workflow_call:
         inputs:
             build_platforms:
