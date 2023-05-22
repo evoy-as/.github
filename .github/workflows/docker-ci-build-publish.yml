@@ -36,9 +36,6 @@ jobs:
         run: |
           echo "Semver: $GitVersion_SemVer"
           echo "semVer=$GitVersion_SemVer" >> $GITHUB_OUTPUT
-      - name: Tag giversion
-        id: gitversion-tag
-        uses: evoy-as/.github/.github/actions/gitversion-tag@main
       # Support multi-platform
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -64,3 +61,8 @@ jobs:
             platforms: ${{ inputs.build_platforms }}
             cache-from: type=gha
             cache-to: type=gha,mode=max
+      - name: Tag GitVersion
+        if: success()
+        id: gitversion-tag
+        uses: evoy-as/.github/.github/actions/gitversion-tag@main
+      
