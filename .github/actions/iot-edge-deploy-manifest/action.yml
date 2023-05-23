@@ -3,29 +3,40 @@
 # See sample manifest: DeployEdgeManifest.json
 #
 ####
+   name: 'DeployEdgeManifest'
+        workingDirectory: '$(System.DefaultWorkingDirectory)'
+        targetCondition: "tags.cockpitEnabled='true'"
 name: IotEdgeManifestDeploy
 description: 'Deploy IoT Edge manifest'
 inputs:
-  azureRbacCredentials:
+  azure_rbac_credentials:
     required: true
     type: string
-  semVer:
+  sem_ver:
     required: true
     type: string
   image:
     required: true
     type: string
-  edgeDeploymentFileName:
+  edge_deployment_fileName:
     required: false
     type: string
     default: edge-deployment.json
+  target_condition:
+    required: true
+    type: string
+    default: tags.notset='true'
+  priority:
+    required: false
+    type: string
+    default: 3
 runs:
   using: "composite"
   steps:
     - name: 'Login via Azure CLI'
       uses: azure/login@v1
       with:
-        creds: ${{ inputs.azureRbacCredentials }}
+        creds: ${{ inputs.azure_rbac_credentials }}
     - name: 'Set image url in manifest file'
       uses: cschleiden/replace-tokens@v1
       with:
@@ -37,7 +48,7 @@ runs:
       run: |
         branch_name=${{ github.head_ref || github.ref_name }}
         echo "Branch: $branch_name"
-        build_id="${{ inputs.semver }}"
+        build_id="${{ inputs.sem_ver }}"
         deployment_name="azdevops-$(Build.DefinitionName)"
 
 
@@ -59,7 +70,7 @@ runs:
         
         deployment_name="$deployment_name-$build_id"
         echo "Creating deployment: '$deployment_name'"
-        echo 'az iot edge deployment create -n $iot_hub_name -d "$deployment_name" --content edge-deployment.json --target-condition "${{ parameters.targetCondition }}" --layered --priority ${{ parameters.priority }}'
+        echo 'az iot edge deployment create -n $iot_hub_name -d "$deployment_name" --content edge-deployment.json --target-condition "${{ inputs.target_condition }}" --layered --priority ${{ inputs.priority }}'
         
         # if [ ! -z "$existingDeployment" ]
         # then
