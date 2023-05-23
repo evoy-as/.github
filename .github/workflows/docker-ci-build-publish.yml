@@ -8,6 +8,10 @@ on:
             build_platforms:
                 required: true
                 type: string
+        outputs:
+            sem_ver:
+              description: "SemVer from GitVersion"
+              value: ${{ jobs.build.outputs.semVer }}
           
 env:
     REGISTRY: acrevoy.azurecr.io
