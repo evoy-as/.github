@@ -66,14 +66,14 @@ jobs:
           echo "CheckTag: ${{ steps.checkTag.outputs.exists == 'false' }}"
           echo "pushDocker=${{ (github.event_name != 'pull_request' || inputs.always_push_docker == true) && steps.checkTag.outputs.exists == 'false' }}" >> "$GITHUB_OUTPUT"
       - name: Log into registry ${{ env.REGISTRY }}
-        if: steps.push-docker.outputs.pushDocker == true
+        if: steps.push-docker.outputs.pushDocker == 'true'
         uses: docker/login-action@28218f9b04b4f3f62068d7b6ce6ca5b26e35336c
         with:
             registry: ${{ env.REGISTRY }}
             username: ${{ vars.ACR_USER }}
             password: ${{ secrets.ACR_PASSWORD }}
       - id: docker-image-url
-        if: steps.push-docker.outputs.pushDocker == true
+        if: steps.push-docker.outputs.pushDocker
         run: | 
             echo "imageUrl=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.gitversion_output.outputs.semVer }}" >> $env:GITHUB_OUTPUT
       - name: Build and push Docker image
