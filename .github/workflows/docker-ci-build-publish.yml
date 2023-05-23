@@ -70,17 +70,16 @@ jobs:
             username: ${{ vars.ACR_USER }}
             password: ${{ secrets.ACR_PASSWORD }}
       - id: docker-image-url
-        if: steps.push-docker.outputs.pushDocker
+        if: steps.push-docker.outputs.pushDocker == 'true'
         run: | 
-            echo "imageUrl=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.gitversion_output.outputs.semVer }}" >> $env:GITHUB_OUTPUT
+            echo "imageUrl=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.gitversion_output.outputs.semVer }}" >> "$GITHUB_OUTPUT"
       - name: Build and push Docker image
         id: build-and-push
         uses: docker/build-push-action@ac9327eae2b366085ac7f6a2d02df8aa8ead720a
         with:
             context: .
             push: ${{ steps.push-docker.outputs.pushDocker == 'true'}}
-            tags: | 
-              ${{ steps.docker-image-url.outputs.imageUrl }}
+            tags: ${{ steps.docker-image-url.outputs.imageUrl }}
             platforms: ${{ inputs.build_platforms }}
             cache-from: type=gha
             cache-to: type=gha,mode=max
