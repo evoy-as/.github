@@ -60,7 +60,8 @@ runs:
         else 
             env="dev"
         fi 
-        echo $deployment_name $env
+        echo "Hub name: iot-$env-evoy-"
+        az iot hub list
         echo "hub query: $(az iot hub list --query "[?starts_with(name,'iot-$env-evoy-')].name" --output tsv)"
         iot_hub_name=$(az iot hub list --query "[?starts_with(name,'iot-$env-evoy-')].name" --output tsv)
         echo "Deploying to IoT Hub: '$iot_hub_name'"
