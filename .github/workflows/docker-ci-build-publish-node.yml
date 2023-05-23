@@ -1,0 +1,70 @@
+###
+## This workflow is made specifically for React apps
+###
+name: docker_ci_build_publish_node
+on: 
+    workflow_call:
+        inputs:
+            build_platforms:
+                required: true
+                type: string
+          
+env:
+    REGISTRY: acrevoy.azurecr.io
+    IMAGE_NAME: ${{ github.event.repository.name }}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+        contents: write
+        packages: write
+        # This is used to complete the identity challenge
+        # with sigstore/fulcio when running outside of PRs.
+        id-token: write
+    outputs:
+      semVer: ${{ steps.gitversion_output.outputs.semVer }}
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Determine GitVersion
+        id: gitversion
+        uses: evoy-as/.github/.github/actions/gitversion-setup@main
+      - name: Display Semver
+        id: gitversion_output
+        run: |
+          echo "Semver: $GitVersion_SemVer"
+          echo "semVer=$GitVersion_SemVer" >> $GITHUB_OUTPUT
+      # Workaround: https://github.com/docker/build-push-action/issues/461
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@79abd3f86f79a9d68a23c75a09a9a85889262adf
+      - uses: mukunku/tag-exists-action@v1.2.0
+        id: checkTag
+        with: 
+          tag: 'v${{ steps.gitversion_output.outputs.semVer }}'
+      - run: | 
+          echo "Tag exists: ${{ steps.checkTag.outputs.exists }}"
+      - name: Log into registry ${{ env.REGISTRY }}
+        if: github.event_name != 'pull_request' && steps.checkTag.outputs.exists == false
+        uses: docker/login-action@v2
+        with:
+            registry: ${{ env.REGISTRY }}
+            username: ${{ vars.ACR_USER }}
+            password: ${{ secrets.ACR_PASSWORD }}
+      - name: Build and push Docker image
+        id: build-and-push
+        uses: docker/build-push-action@v4
+        with:
+            context: .
+            push: true
+            tags: | 
+                ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.gitversion_output.outputs.semVer }}
+            platforms: ${{ inputs.build_platforms }}
+            cache-from: type=gha
+            cache-to: type=gha,mode=max
+      - name: Tag GitVersion
+        if: success() && steps.checkTag.outputs.exists == false
+        id: gitversion-tag
+        uses: evoy-as/.github/.github/actions/gitversion-tag@main
+      
