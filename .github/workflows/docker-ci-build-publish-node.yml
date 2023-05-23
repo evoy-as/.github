@@ -4,11 +4,7 @@
 name: docker_ci_build_publish_node
 on: 
     workflow_call:
-        inputs:
-            build_platforms:
-                required: true
-                type: string
-          
+
 env:
     REGISTRY: acrevoy.azurecr.io
     IMAGE_NAME: ${{ github.event.repository.name }}
@@ -60,7 +56,6 @@ jobs:
             push: ${{ steps.checkTag.outputs.exists == false }}
             tags: | 
                 ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.gitversion_output.outputs.semVer }}
-            platforms: ${{ inputs.build_platforms }}
             cache-from: type=gha
             cache-to: type=gha,mode=max
       - name: Tag GitVersion
