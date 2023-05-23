@@ -60,22 +60,19 @@ runs:
         else 
             env="dev"
         fi 
-        echo "Hub name: iot-$env-evoy-"
-        az iot hub list
-        echo "hub query: $(az iot hub list --query "[?starts_with(name,'iot-$env-evoy-')].name" --output tsv)"
         iot_hub_name=$(az iot hub list --query "[?starts_with(name,'iot-$env-evoy-')].name" --output tsv)
         echo "Deploying to IoT Hub: '$iot_hub_name'"
         existingDeployment=$(az iot edge deployment list --hub-name $iot_hub_name --query "reverse(sort_by([?starts_with(id,'$deployment_name')].{id:id, created:createdTimeUtc}, &created))[0].id" --output tsv)
         
         deployment_name="$deployment_name-$build_id"
         echo "Creating deployment: '$deployment_name'"
-        echo 'az iot edge deployment create -n $iot_hub_name -d "$deployment_name" --content edge-deployment.json --target-condition "${{ inputs.target_condition }}" --layered --priority ${{ inputs.priority }}'
+        az iot edge deployment create -n $iot_hub_name -d "$deployment_name" --content edge-deployment.json --target-condition "${{ inputs.target_condition }}" --layered --priority ${{ inputs.priority }}
         
-        # if [ ! -z "$existingDeployment" ]
-        # then
-        #     echo "Deleting previous deployment: '$existingDeployment'"
-        #     az iot edge deployment delete -n $iot_hub_name -d "$existingDeployment"
-        # fi
+        if [ ! -z "$existingDeployment" ]
+        then
+            echo "Deleting previous deployment: '$existingDeployment'"
+            az iot edge deployment delete -n $iot_hub_name -d "$existingDeployment"
+        fi
 
     - name: Azure logout
       shell: bash
