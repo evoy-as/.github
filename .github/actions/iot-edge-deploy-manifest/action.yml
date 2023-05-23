@@ -46,7 +46,7 @@ runs:
         branch_name=${{ github.head_ref || github.ref_name }}
         echo "Branch: $branch_name"
         build_id="${{ inputs.sem_ver }}"
-        deployment_name="azdevops-$(Build.DefinitionName)"
+        deployment_name="ci-${{ github.event.repository.name }}"
 
 
         echo "Install azure-iot extension"
