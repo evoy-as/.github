@@ -1,0 +1,72 @@
+#### 
+# Requires a file named edge-deployment.json in the repo using the template.
+# See sample manifest: DeployEdgeManifest.json
+#
+####
+name: IotEdgeManifestDeploy
+description: 'Deploy IoT Edge manifest'
+inputs:
+  semVer:
+    required: true
+    type: string
+  image:
+    required: true
+    type: string
+  edgeDeploymentFileName:
+    required: false
+    type: string
+    default: edge-deployment.json
+env:
+    IMAGE_NAME: ${{ github.event.repository.name }}
+    BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+runs:
+  using: "composite"
+  steps
+  - name: replace-env
+    - name: 'Login via Azure CLI'
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_RBAC_CREDENTIALS }}
+    - name: 'Set image url in manifest file'
+      uses: cschleiden/replace-tokens@v1
+      with:
+        files: '["edge-deployment.json"]'
+      env:
+        IMAGE: ${{ inputs.image }}
+    - name: 'Deploy edge manifest to IoT Hub'
+      shell: bash
+      run: |
+        branch_name=$BRANCH_NAME
+        build_id="${{ inputs.semver }}"
+        deployment_name="azdevops-$(Build.DefinitionName)"
+
+
+        echo "Install azure-iot extension"
+        az config set extension.use_dynamic_install=yes_without_prompt
+        az extension add --name azure-iot
+        echo "$1 $2 $3"
+        
+        build_id=$(echo $build_id | sed 's/\./_/g')
+        
+        if [ "$branch_name" == "refs/heads/main" ]; then
+            env="prod"
+        else 
+            env="dev"
+        fi 
+        iot_hub_name=$(az iot hub list --query "[?starts_with(name,'iot-$env-evoy-')].name" --output tsv)
+        echo "Deploying to IoT Hub: '$iot_hub_name'"
+        existingDeployment=$(az iot edge deployment list --hub-name $iot_hub_name --query "reverse(sort_by([?starts_with(id,'$deployment_name')].{id:id, created:createdTimeUtc}, &created))[0].id" --output tsv)
+        
+        deployment_name="$deployment_name-$build_id"
+        echo "Creating deployment: '$deployment_name'"
+        echo 'az iot edge deployment create -n $iot_hub_name -d "$deployment_name" --content edge-deployment.json --target-condition "${{ parameters.targetCondition }}" --layered --priority ${{ parameters.priority }}'
+        
+        # if [ ! -z "$existingDeployment" ]
+        # then
+        #     echo "Deleting previous deployment: '$existingDeployment'"
+        #     az iot edge deployment delete -n $iot_hub_name -d "$existingDeployment"
+        # fi
+
+    - name: Azure logout
+      run: |
+        az logout
