@@ -70,7 +70,7 @@ jobs:
             username: ${{ vars.ACR_USER }}
             password: ${{ secrets.ACR_PASSWORD }}
       - id: docker-image-url
-        if: steps.push-docker.outputs.pushDocker
+        if: (github.event_name != 'pull_request' || inputs.always_push_docker) && steps.checkTag.outputs.exists == false
         run: | 
             echo "imageUrl=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.gitversion_output.outputs.semVer }}" >> $env:GITHUB_OUTPUT
       - name: Build and push Docker image
@@ -78,7 +78,7 @@ jobs:
         uses: docker/build-push-action@ac9327eae2b366085ac7f6a2d02df8aa8ead720a
         with:
             context: .
-            push: steps.push-docker.outputs.pushDocker
+            push: ${{ steps.push-docker.outputs.pushDocker == true }}
             tags: | 
               ${{ steps.docker-image-url.outputs.imageUrl }}
             platforms: ${{ inputs.build_platforms }}
