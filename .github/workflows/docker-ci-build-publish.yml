@@ -8,6 +8,9 @@ on:
             build_platforms:
                 required: true
                 type: string
+            always_push_docker:
+              required: false
+              type: boolean
         outputs:
             sem_ver:
               description: "SemVer from GitVersion"
@@ -56,15 +59,18 @@ jobs:
           tag: 'v${{ steps.gitversion_output.outputs.semVer }}'
       - run: | 
           echo "Tag exists: ${{ steps.checkTag.outputs.exists }}"
+      - id: push-docker
+        run: | 
+          echo "pushDocker=${{ (github.event_name != 'pull_request' || inputs.always_push_docker) && steps.checkTag.outputs.exists == false }}" >> $env:GITHUB_OUTPUT
       - name: Log into registry ${{ env.REGISTRY }}
-        if: github.event_name != 'pull_request' && steps.checkTag.outputs.exists == false
+        if: steps.push-docker.outputs.pushDocker
         uses: docker/login-action@28218f9b04b4f3f62068d7b6ce6ca5b26e35336c
         with:
             registry: ${{ env.REGISTRY }}
             username: ${{ vars.ACR_USER }}
             password: ${{ secrets.ACR_PASSWORD }}
       - id: docker-image-url
-        if: github.event_name != 'pull_request' && steps.checkTag.outputs.exists == false
+        if: steps.push-docker.outputs.pushDocker
         run: | 
             echo "imageUrl=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.gitversion_output.outputs.semVer }}" >> $env:GITHUB_OUTPUT
       - name: Build and push Docker image
@@ -72,7 +78,7 @@ jobs:
         uses: docker/build-push-action@ac9327eae2b366085ac7f6a2d02df8aa8ead720a
         with:
             context: .
-            push: ${{ github.event_name != 'pull_request' && steps.checkTag.outputs.exists == false }}
+            push: ${{ steps.push-docker.outputs.pushDocker }}
             tags: | 
               ${{ steps.docker-image-url.outputs.imageUrl }}
             platforms: ${{ inputs.build_platforms }}
