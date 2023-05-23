@@ -3,9 +3,6 @@
 # See sample manifest: DeployEdgeManifest.json
 #
 ####
-   name: 'DeployEdgeManifest'
-        workingDirectory: '$(System.DefaultWorkingDirectory)'
-        targetCondition: "tags.cockpitEnabled='true'"
 name: IotEdgeManifestDeploy
 description: 'Deploy IoT Edge manifest'
 inputs:
@@ -46,16 +43,15 @@ runs:
     - name: 'Deploy edge manifest to IoT Hub'
       shell: bash
       run: |
-        branch_name=${{ github.head_ref || github.ref_name }}
+        branch_name=${{ github.head_ref }}
         echo "Branch: $branch_name"
         build_id="${{ inputs.sem_ver }}"
-        deployment_name="azdevops-$(Build.DefinitionName)"
+        deployment_name="ci-${{ github.event.repository.name }}"
 
 
         echo "Install azure-iot extension"
         az config set extension.use_dynamic_install=yes_without_prompt
         az extension add --name azure-iot
-        echo "$1 $2 $3"
         
         build_id=$(echo $build_id | sed 's/\./_/g')
         
@@ -70,13 +66,13 @@ runs:
         
         deployment_name="$deployment_name-$build_id"
         echo "Creating deployment: '$deployment_name'"
-        echo 'az iot edge deployment create -n $iot_hub_name -d "$deployment_name" --content edge-deployment.json --target-condition "${{ inputs.target_condition }}" --layered --priority ${{ inputs.priority }}'
+        az iot edge deployment create -n $iot_hub_name -d "$deployment_name" --content edge-deployment.json --target-condition "${{ inputs.target_condition }}" --layered --priority ${{ inputs.priority }}
         
-        # if [ ! -z "$existingDeployment" ]
-        # then
-        #     echo "Deleting previous deployment: '$existingDeployment'"
-        #     az iot edge deployment delete -n $iot_hub_name -d "$existingDeployment"
-        # fi
+        if [ ! -z "$existingDeployment" ]
+        then
+            echo "Deleting previous deployment: '$existingDeployment'"
+            az iot edge deployment delete -n $iot_hub_name -d "$existingDeployment"
+        fi
 
     - name: Azure logout
       shell: bash
