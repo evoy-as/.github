@@ -60,8 +60,9 @@ jobs:
       - run: | 
           echo "Tag exists: ${{ steps.checkTag.outputs.exists }}"
       - id: push-docker
-        run: | 
-          echo "pushDocker=${{ (github.event_name != 'pull_request' || inputs.always_push_docker) && steps.checkTag.outputs.exists == false }}" >> $env:GITHUB_OUTPUT
+        run: |
+          echo "always push to docker: ${{ inputs.always_push_docker }}"
+          echo "pushDocker=${{ (github.event_name != 'pull_request' || inputs.always_push_docker == true) && steps.checkTag.outputs.exists == false }}" >> $env:GITHUB_OUTPUT
       - name: Log into registry ${{ env.REGISTRY }}
         if: steps.push-docker.outputs.pushDocker
         uses: docker/login-action@28218f9b04b4f3f62068d7b6ce6ca5b26e35336c
