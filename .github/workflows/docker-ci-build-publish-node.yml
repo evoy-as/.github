@@ -46,7 +46,6 @@ jobs:
       - run: | 
           echo "Tag exists: ${{ steps.checkTag.outputs.exists }}"
       - name: Log into registry ${{ env.REGISTRY }}
-        if: steps.checkTag.outputs.exists == false
         uses: docker/login-action@v2
         with:
             registry: ${{ env.REGISTRY }}
