@@ -3,9 +3,6 @@
 # See sample manifest: DeployEdgeManifest.json
 #
 ####
-   name: 'DeployEdgeManifest'
-        workingDirectory: '$(System.DefaultWorkingDirectory)'
-        targetCondition: "tags.cockpitEnabled='true'"
 name: IotEdgeManifestDeploy
 description: 'Deploy IoT Edge manifest'
 inputs:
