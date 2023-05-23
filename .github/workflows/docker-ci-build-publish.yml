@@ -64,7 +64,7 @@ jobs:
         run: |
           echo "always push to docker: ${{ inputs.always_push_docker }}"
           echo "Is pr: ${{ github.event_name != 'pull_request' }}"
-          echo "CheckTag: ${{ steps.checkTag.outputs.exists == false  }}"
+          echo "CheckTag: ${{ steps.checkTag.outputs.exists == 'false' }}"
           echo "pushDocker=${{ (github.event_name != 'pull_request' || inputs.always_push_docker == true) && steps.checkTag.outputs.exists == false }}" >> "$GITHUB_OUTPUT"
       - name: Log into registry ${{ env.REGISTRY }}
         if: steps.push-docker.outputs.pushDocker
