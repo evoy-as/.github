@@ -43,7 +43,7 @@ runs:
     - name: 'Deploy edge manifest to IoT Hub'
       shell: bash
       run: |
-        branch_name=${{ github.head_ref || github.ref_name }}
+        branch_name=${{ github.head_ref }}
         echo "Branch: $branch_name"
         build_id="${{ inputs.sem_ver }}"
         deployment_name="ci-${{ github.event.repository.name }}"
@@ -52,7 +52,6 @@ runs:
         echo "Install azure-iot extension"
         az config set extension.use_dynamic_install=yes_without_prompt
         az extension add --name azure-iot
-        echo "$1 $2 $3"
         
         build_id=$(echo $build_id | sed 's/\./_/g')
         
@@ -61,6 +60,8 @@ runs:
         else 
             env="dev"
         fi 
+        echo $deployment_name $env
+        
         iot_hub_name=$(az iot hub list --query "[?starts_with(name,'iot-$env-evoy-')].name" --output tsv)
         echo "Deploying to IoT Hub: '$iot_hub_name'"
         existingDeployment=$(az iot edge deployment list --hub-name $iot_hub_name --query "reverse(sort_by([?starts_with(id,'$deployment_name')].{id:id, created:createdTimeUtc}, &created))[0].id" --output tsv)
