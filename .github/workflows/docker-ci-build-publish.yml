@@ -12,6 +12,9 @@ on:
             sem_ver:
               description: "SemVer from GitVersion"
               value: ${{ jobs.build.outputs.semVer }}
+            docker_image_url:
+              description: "Full docker repo url"
+              value: ${{ jobs.build.outputs.imageUrl }}
           
 env:
     REGISTRY: acrevoy.azurecr.io
@@ -27,6 +30,7 @@ jobs:
         id-token: write
     outputs:
       semVer: ${{ steps.gitversion_output.outputs.semVer }}
+      imageUrl: ${{ steps.docker-image-url.outputs.imageUrl }}
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
@@ -59,6 +63,10 @@ jobs:
             registry: ${{ env.REGISTRY }}
             username: ${{ vars.ACR_USER }}
             password: ${{ secrets.ACR_PASSWORD }}
+      - id: docker-image-url
+        if: github.event_name != 'pull_request' && steps.checkTag.outputs.exists == false
+        run: | 
+            echo "imageUrl=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.gitversion_output.outputs.semVer }}" >> $env:GITHUB_OUTPUT
       - name: Build and push Docker image
         id: build-and-push
         uses: docker/build-push-action@ac9327eae2b366085ac7f6a2d02df8aa8ead720a
@@ -66,7 +74,7 @@ jobs:
             context: .
             push: ${{ github.event_name != 'pull_request' && steps.checkTag.outputs.exists == false }}
             tags: | 
-                ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.gitversion_output.outputs.semVer }}
+              ${{ steps.docker-image-url.outputs.imageUrl }}
             platforms: ${{ inputs.build_platforms }}
             cache-from: type=gha
             cache-to: type=gha,mode=max
