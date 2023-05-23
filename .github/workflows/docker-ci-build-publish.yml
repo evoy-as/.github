@@ -78,7 +78,7 @@ jobs:
         uses: docker/build-push-action@ac9327eae2b366085ac7f6a2d02df8aa8ead720a
         with:
             context: .
-            push: ${{ steps.push-docker.outputs.pushDocker == true }}
+            push: ${{ steps.push-docker.outputs.pushDocker == 'true' }}
             tags: | 
               ${{ steps.docker-image-url.outputs.imageUrl }}
             platforms: ${{ inputs.build_platforms }}
