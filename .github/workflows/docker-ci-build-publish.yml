@@ -61,9 +61,6 @@ jobs:
           echo "Tag exists: ${{ steps.checkTag.outputs.exists }}"
       - id: push-docker
         run: |
-          echo "always push to docker: ${{ inputs.always_push_docker == true }}"
-          echo "Is not pr: ${{ github.event_name != 'pull_request' }}"
-          echo "CheckTag: ${{ steps.checkTag.outputs.exists == 'false' }}"
           echo "pushDocker=${{ (github.event_name != 'pull_request' || inputs.always_push_docker == true) && steps.checkTag.outputs.exists == 'false' }}" >> "$GITHUB_OUTPUT"
       - name: Log into registry ${{ env.REGISTRY }}
         if: steps.push-docker.outputs.pushDocker == 'true'
@@ -81,7 +78,7 @@ jobs:
         uses: docker/build-push-action@ac9327eae2b366085ac7f6a2d02df8aa8ead720a
         with:
             context: .
-            push: ${{ steps.push-docker.outputs.pushDocker == true }}
+            push: ${{ steps.push-docker.outputs.pushDocker == 'true'}}
             tags: | 
               ${{ steps.docker-image-url.outputs.imageUrl }}
             platforms: ${{ inputs.build_platforms }}
