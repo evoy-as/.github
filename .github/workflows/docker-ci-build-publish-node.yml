@@ -46,18 +46,19 @@ jobs:
       - run: | 
           echo "Tag exists: ${{ steps.checkTag.outputs.exists }}"
       - name: Log into registry ${{ env.REGISTRY }}
-        if: github.event_name != 'pull_request' && steps.checkTag.outputs.exists == false
+        if: steps.checkTag.outputs.exists == false
         uses: docker/login-action@v2
         with:
             registry: ${{ env.REGISTRY }}
             username: ${{ vars.ACR_USER }}
             password: ${{ secrets.ACR_PASSWORD }}
       - name: Build and push Docker image
+        if: steps.checkTag.outputs.exists == false
         id: build-and-push
         uses: docker/build-push-action@v4
         with:
             context: .
-            push: true
+            push: ${{ steps.checkTag.outputs.exists == false }}
             tags: | 
                 ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.gitversion_output.outputs.semVer }}
             platforms: ${{ inputs.build_platforms }}
