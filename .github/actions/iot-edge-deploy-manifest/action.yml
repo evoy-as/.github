@@ -19,7 +19,6 @@ inputs:
 runs:
   using: "composite"
   steps
-  - name: replace-env
     - name: 'Login via Azure CLI'
       uses: azure/login@v1
       with:
