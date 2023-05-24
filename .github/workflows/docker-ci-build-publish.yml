@@ -84,7 +84,7 @@ jobs:
             cache-from: type=gha
             cache-to: type=gha,mode=max
       - name: Tag GitVersion
-        if: success() && steps.checkTag.outputs.exists == false
+        if: success() && steps.checkTag.outputs.exists == 'false'
         id: gitversion-tag
         uses: evoy-as/.github/.github/actions/gitversion-tag@main
       
