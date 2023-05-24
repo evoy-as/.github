@@ -78,7 +78,11 @@ runs:
             echo "Deleting previous deployment: '$existingDeployment'"
             az iot edge deployment delete -n $iot_hub_name -d "$existingDeployment"
         fi
-
+    - name: 'Deploy skipped due to existing tag ${{ inputs.sem_ver  }}'
+      if: ${{ inputs.image == null }}
+      shell: bash
+      run: |
+        echo "Deploy skipped due to existing tag ${{ inputs.sem_ver  }}"
     - name: Azure logout
       shell: bash
       run: |
