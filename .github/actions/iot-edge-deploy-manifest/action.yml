@@ -45,6 +45,7 @@ runs:
       run: |
           cat edge-deployment.json
     - name: 'Deploy edge manifest to IoT Hub'
+      if: ${{ inputs.image != null }}
       shell: bash
       run: |
         branch_name=${{ github.ref }}
