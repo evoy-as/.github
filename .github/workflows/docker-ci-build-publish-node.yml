@@ -48,19 +48,18 @@ jobs:
             username: ${{ vars.ACR_USER }}
             password: ${{ secrets.ACR_PASSWORD }}
       - name: Build and push Docker image
-        if: steps.checkTag.outputs.exists == false
         id: build-and-push
         uses: docker/build-push-action@v4
         with:
             context: .
-            push: ${{ steps.checkTag.outputs.exists == false }}
+            push: true
             tags: | 
                 ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.gitversion_output.outputs.semVer }}
             platforms: "linux/amd64"
             cache-from: type=gha
             cache-to: type=gha,mode=max
       - name: Tag GitVersion
-        if: success() && steps.checkTag.outputs.exists == false
+        if: success()
         id: gitversion-tag
         uses: evoy-as/.github/.github/actions/gitversion-tag@main
       
