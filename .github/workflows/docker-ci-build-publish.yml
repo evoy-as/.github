@@ -8,6 +8,16 @@ on:
             build_platforms:
                 required: true
                 type: string
+            always_push_docker:
+              required: false
+              type: boolean
+        outputs:
+            sem_ver:
+              description: "SemVer from GitVersion"
+              value: ${{ jobs.build.outputs.semVer }}
+            docker_image_url:
+              description: "Full docker repo url"
+              value: ${{ jobs.build.outputs.imageUrl }}
           
 env:
     REGISTRY: acrevoy.azurecr.io
@@ -23,6 +33,7 @@ jobs:
         id-token: write
     outputs:
       semVer: ${{ steps.gitversion_output.outputs.semVer }}
+      imageUrl: ${{ steps.docker-image-url.outputs.imageUrl }}
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
@@ -48,21 +59,27 @@ jobs:
           tag: 'v${{ steps.gitversion_output.outputs.semVer }}'
       - run: | 
           echo "Tag exists: ${{ steps.checkTag.outputs.exists }}"
+      - id: push-docker
+        run: |
+          echo "pushDocker=${{ (github.event_name != 'pull_request' || inputs.always_push_docker == true) && steps.checkTag.outputs.exists == 'false' }}" >> "$GITHUB_OUTPUT"
       - name: Log into registry ${{ env.REGISTRY }}
-        if: github.event_name != 'pull_request' && steps.checkTag.outputs.exists == false
+        if: steps.push-docker.outputs.pushDocker == 'true'
         uses: docker/login-action@28218f9b04b4f3f62068d7b6ce6ca5b26e35336c
         with:
             registry: ${{ env.REGISTRY }}
             username: ${{ vars.ACR_USER }}
             password: ${{ secrets.ACR_PASSWORD }}
+      - id: docker-image-url
+        if: steps.push-docker.outputs.pushDocker == 'true'
+        run: | 
+            echo "imageUrl=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.gitversion_output.outputs.semVer }}" >> "$GITHUB_OUTPUT"
       - name: Build and push Docker image
         id: build-and-push
         uses: docker/build-push-action@ac9327eae2b366085ac7f6a2d02df8aa8ead720a
         with:
             context: .
-            push: ${{ github.event_name != 'pull_request' && steps.checkTag.outputs.exists == false }}
-            tags: | 
-                ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.gitversion_output.outputs.semVer }}
+            push: ${{ steps.push-docker.outputs.pushDocker == 'true'}}
+            tags: ${{ steps.docker-image-url.outputs.imageUrl }}
             platforms: ${{ inputs.build_platforms }}
             cache-from: type=gha
             cache-to: type=gha,mode=max
