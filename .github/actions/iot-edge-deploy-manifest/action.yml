@@ -67,6 +67,7 @@ runs:
         
         deployment_name="$deployment_name-$build_id"
         echo "Creating deployment: '$deployment_name'"
+        echo 'az iot edge deployment create -n $iot_hub_name -d "$deployment_name" --content edge-deployment.json --target-condition "${{ inputs.target_condition }}" --layered --priority ${{ inputs.priority }}'
         az iot edge deployment create -n $iot_hub_name -d "$deployment_name" --content edge-deployment.json --target-condition "${{ inputs.target_condition }}" --layered --priority ${{ inputs.priority }}
         
         if [ ! -z "$existingDeployment" ]
