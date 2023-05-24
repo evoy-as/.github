@@ -47,17 +47,14 @@ runs:
     - name: 'Deploy edge manifest to IoT Hub'
       shell: bash
       run: |
-        branch_name=${{ github.head_ref }}
+        branch_name=${{ github.ref }}
         echo "Branch: $branch_name"
         build_id="${{ inputs.sem_ver }}"
         deployment_name="ci-${{ github.event.repository.name }}"
 
-
         echo "Install azure-iot extension"
         az config set extension.use_dynamic_install=yes_without_prompt
         az extension add --name azure-iot
-        
-        build_id=$(echo $build_id | sed 's/\./_/g')
         
         if [ "$branch_name" == "refs/heads/main" ]; then
             env="prod"
