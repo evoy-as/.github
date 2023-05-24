@@ -3,11 +3,14 @@
 ###
 name: docker_ci_build_publish_node
 on: 
-    workflow_call:
-
+  workflow_call:
+    outputs:
+      semVer:
+        description: "The semantic version"
+        value: ${{ jobs.build.outputs.semVer }}
 env:
-    REGISTRY: acrevoy.azurecr.io
-    IMAGE_NAME: ${{ github.event.repository.name }}
+  REGISTRY: acrevoy.azurecr.io
+  IMAGE_NAME: ${{ github.event.repository.name }}
 jobs:
   build:
     runs-on: ubuntu-latest
