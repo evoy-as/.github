@@ -40,6 +40,9 @@ runs:
         files: '["edge-deployment.json"]'
       env:
         IMAGE: ${{ inputs.image }}
+    - name: Show edge deployment
+      run: |
+          cat edge-deployment.json
     - name: 'Deploy edge manifest to IoT Hub'
       shell: bash
       run: |
