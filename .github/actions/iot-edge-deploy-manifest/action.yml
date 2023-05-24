@@ -55,7 +55,9 @@ runs:
         echo "Install azure-iot extension"
         az config set extension.use_dynamic_install=yes_without_prompt
         az extension add --name azure-iot
-        
+
+        build_id=$(echo $build_id | sed 's/\./_/g')
+
         if [ "$branch_name" == "refs/heads/main" ]; then
             env="prod"
         else 
