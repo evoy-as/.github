@@ -18,7 +18,6 @@ runs:
           cp "$file" ./coverage
         done
     - name: Code Coverage Summary Report
-      shell: bash
       uses: irongut/CodeCoverageSummary@v1.3.0
       with:
         filename: 'coverage/${{ inputs.coverage_filename }}'
@@ -26,11 +25,11 @@ runs:
         format: 'markdown'
         output: 'both'
     - name: Add Coverage PR Comment
-      shell: bash
       uses: marocchino/sticky-pull-request-comment@v2
       if: github.event_name == 'pull_request'
       with:
         recreate: true
         path: code-coverage-results.md
     - name: Write to Job Summary
+      shell: bash
       run: cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
