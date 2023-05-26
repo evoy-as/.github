@@ -1,0 +1,36 @@
+name: Code coverage summary
+description: 'Collect code coverage and output to pull request and PR'
+inputs:
+  coverage_filename:
+    required: false
+    type: string
+    description: Cobertura coverage file name
+    default: coverage.cobertura.xml
+runs:
+  using: "composite"
+  steps:
+    - name: Copy Coverage to Predictable Location
+      shell: bash
+      run: |
+        mkdir -p coverage
+        files=$(find . -name '${{ inputs.coverage_filename }}' | grep -Ev '$HOSTNAME')
+          for file in $files; do
+          cp "$file" ./coverage
+        done
+    - name: Code Coverage Summary Report
+      shell: bash
+      uses: irongut/CodeCoverageSummary@v1.3.0
+      with:
+        filename: 'coverage/${{ inputs.coverage_filename }}'
+        badge: true
+        format: 'markdown'
+        output: 'both'
+    - name: Add Coverage PR Comment
+      shell: bash
+      uses: marocchino/sticky-pull-request-comment@v2
+      if: github.event_name == 'pull_request'
+      with:
+        recreate: true
+        path: code-coverage-results.md
+    - name: Write to Job Summary
+      run: cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
