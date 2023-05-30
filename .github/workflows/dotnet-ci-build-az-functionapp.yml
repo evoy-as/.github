@@ -1,22 +1,18 @@
 name: dotnet-ci-build-az-functionapp
 
 on:
-workflow_call:
-    inputs:
-        pulumi_stack_name:
+  workflow_call:
+      inputs:
+          pulumi_stack_name:
+              required: true
+              type: string
+          infrasturcture_dir:
             required: true
             type: string
-        infrasturcture_dir:
-          required: true
-          type: string
-    outputs:
-        sem_ver:
-          description: "SemVer from GitVersion"
-          value: ${{ jobs.build.outputs.semVer }}
-        docker_image_url:
-          description: "Full docker repo url"
-          value: ${{ jobs.build.outputs.imageUrl }}
-
+      outputs:
+          sem_ver:
+            description: "SemVer from GitVersion"
+            value: ${{ jobs.deploy.outputs.semVer }}
   workflow_dispatch:
 env: 
   build_configuration: Release
@@ -69,6 +65,8 @@ jobs:
 
     runs-on: ubuntu-latest
     needs: build
+    outputs: 
+      semVer: ${{ steps.gitversion-tag.outputs.semVer }}
     env:
         pulumi_stack_name: ${{ inputs.pulumi_stack_name }} 
 
