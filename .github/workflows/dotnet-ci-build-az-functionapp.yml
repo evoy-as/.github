@@ -1,0 +1,132 @@
+name: dotnet-ci-build-az-functionapp
+
+on:
+workflow_call:
+    inputs:
+        pulumi_stack_name:
+            required: true
+            type: string
+        infrasturcture_dir:
+          required: true
+          type: string
+    outputs:
+        sem_ver:
+          description: "SemVer from GitVersion"
+          value: ${{ jobs.build.outputs.semVer }}
+        docker_image_url:
+          description: "Full docker repo url"
+          value: ${{ jobs.build.outputs.imageUrl }}
+
+  workflow_dispatch:
+env: 
+  build_configuration: Release
+  ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    - name: whoami
+      run: |
+        whoami
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 7.0.x
+    - name: Authenticate NuGet
+      run: |
+          dotnet nuget update source evoy -u ${{ github.event.repository.name }} -p ${{ secrets.GH_PACKAGES_TOKEN }} -s https://nuget.pkg.github.com/evoy-as/index.json --store-password-in-clear-text
+      working-directory: ${{ inputs.infrasturcture_dir }}
+    - name: Output
+      run: |
+        echo "config: ${{ env.build_configuration  }}"
+    - name: Restore project dependencies
+      uses: evoy-as/.github/.github/actions/dotnet-core@main
+      with: 
+        command: restore
+        projects: "**/*.csproj"
+    - name: Build the projects - ${{ env.build_configuration }}
+      uses: evoy-as/.github/.github/actions/dotnet-core@main
+      with: 
+        command: build
+        arguments: --no-restore --configuration ${{ env.build_configuration }}
+        projects: "**/*.csproj"
+    - name: Run unit tests with coverage - ${{ env.build_configuration }}
+      uses: evoy-as/.github/.github/actions/dotnet-core@main
+      with: 
+        command: test
+        arguments: --no-build --configuration ${{ env.build_configuration }} --logger trx --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura
+        projects: "**/*.Test.csproj"
+    - name: Code coverage summary
+      uses: evoy-as/.github/.github/actions/code-coverage-summary@main
+  deploy:
+
+    runs-on: ubuntu-latest
+    needs: build
+    env:
+        pulumi_stack_name: ${{ inputs.pulumi_stack_name }} 
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 7.0.x
+    - name: Authenticate NuGet
+      run: |
+          dotnet nuget update source evoy -u ${{ github.event.repository.name }} -p ${{ secrets.GH_PACKAGES_TOKEN }} -s https://nuget.pkg.github.com/evoy-as/index.json --store-password-in-clear-text
+      working-directory: ${{ inputs.infrasturcture_dir }}
+    - name: Restore project dependencies
+      uses: evoy-as/.github/.github/actions/dotnet-core@main
+      with: 
+        command: restore
+        projects: "**/*.csproj"
+    - name: Build and publish function apps
+      uses: evoy-as/.github/.github/actions/dotnet-core@main
+      with: 
+        command: publish
+        arguments: --no-restore --configuration ${{ env.build_configuration }}  --framework net7.0
+        projects: "**/*.FunctionApp.csproj"
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 6.0.x
+    - name: Set Pulumi stack
+      id: pulumi_selected_stack
+      run: |
+          if [[ $GITHUB_REF == 'refs/heads/main' ]]; then
+              echo "selected_stack_name=${{ env.pulumi_stack_name }}/prod" >> "$GITHUB_OUTPUT"
+          else
+              echo "selected_stack_name=${{ env.pulumi_stack_name }}/dev" >> "$GITHUB_OUTPUT"
+          fi
+    - name: Update infrastructure with Pulumi stack - ${{ steps.pulumi_selected_stack.outputs.selected_stack_name }}
+      uses: pulumi/actions@v4
+      with:
+        command: up
+        stack-name: ${{ steps.pulumi_selected_stack.outputs.selected_stack_name }}
+        work-dir: ${{ inputs.infrasturcture_dir }}
+      env:
+        PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+    - name: Tag GitVersion
+      if: success()
+      id: gitversion-tag
+      uses: evoy-as/.github/.github/actions/gitversion-tag@main
+
+  update_release_draft:
+    needs: deploy
+    permissions:
+      contents: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: release-drafter/release-drafter@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
