@@ -14,8 +14,14 @@ runs:
       with:
           useConfigFile: true
           configFilePath: ${{ github.action_path }}/../../GitVersion.yml
+    - uses: mukunku/tag-exists-action@v1.2.0
+      id: checkTag
+      with: 
+        tag: 'v${{ steps.gitversion.outputs.semVer }}'
+    - run: | 
+        echo "Tag exists: ${{ steps.checkTag.outputs.exists }}. Skipping tagging."
     - name: Tag version
-      if: ${{ github.ref == 'refs/heads/main' }}
+      if: ${{ github.ref == 'refs/heads/main' && steps.checkTag.outputs.exists == 'false' }}
       shell: bash
       run: |
         git config user.name "GitHub Action"
