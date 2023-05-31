@@ -6,9 +6,12 @@ on:
           pulumi_stack_name:
               required: true
               type: string
+              default: evoy/${{ github.event.repository.name }}
+              description: Full name of pulumi stack. Defaults to evoy/[repo-name]
           infrasturcture_dir:
             required: true
             type: string
+            default: ./Infrastructure
       outputs:
           sem_ver:
             description: "SemVer from GitVersion"
