@@ -18,7 +18,9 @@ runs:
       id: checkTag
       with: 
         tag: 'v${{ steps.gitversion.outputs.semVer }}'
-    - run: | 
+    - name: Output tag status
+      shell: bash
+      run: | 
         echo "Tag exists: ${{ steps.checkTag.outputs.exists }}. Skipping tagging."
     - name: Tag version
       if: ${{ github.ref == 'refs/heads/main' && steps.checkTag.outputs.exists == 'false' }}
