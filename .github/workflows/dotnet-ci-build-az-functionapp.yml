@@ -61,7 +61,7 @@ jobs:
       with: 
         command: test
         arguments: --no-build --configuration ${{ env.build_configuration }} --logger trx --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura
-        projects: "**/*.Test.csproj"
+        projects: "**/*.Test*.csproj"
     - name: Code coverage summary
       uses: evoy-as/.github/.github/actions/code-coverage-summary@main
   deploy:
