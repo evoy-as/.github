@@ -95,7 +95,7 @@ jobs:
       with: 
         command: publish
         arguments: --no-restore --configuration ${{ env.build_configuration }}  --framework net7.0
-        projects: "**/*.FunctionApp.csproj"
+        projects: "**/*FunctionApp.csproj"
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
