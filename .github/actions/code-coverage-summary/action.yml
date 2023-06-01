@@ -15,7 +15,7 @@ runs:
       run: |
         mkdir -p coverage
         found_coverage_file='false'
-        files=$(find . -name '${{ inputs.coverage_filename }}' | grep -Ev '$HOSTNAME')
+        files=$(find . -type f \( -iname "${{ inputs.coverage_filename }}" ! -path "*/$HOSTNAME/*" \))
         for file in $files; do
           found_coverage_file='true'
           cp "$file" ./coverage
