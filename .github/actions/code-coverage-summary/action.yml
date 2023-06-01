@@ -11,13 +11,18 @@ runs:
   steps:
     - name: Copy Coverage to Predictable Location
       shell: bash
+      id: copy_coverage_files
       run: |
         mkdir -p coverage
+        found_coverage_file='false'
         files=$(find . -name '${{ inputs.coverage_filename }}' | grep -Ev '$HOSTNAME')
           for file in $files; do
-          cp "$file" ./coverage
+            found_coverage_file='true'
+            cp "$file" ./coverage
         done
+        echo "found_coverage_file=$found_coverage_file" >> "$GITHUB_OUTPUT"
     - name: Code Coverage Summary Report
+      if: ${{ steps.copy_coverage_files.found_coverage_file == 'true'}}
       uses: irongut/CodeCoverageSummary@v1.3.0
       with:
         filename: 'coverage/${{ inputs.coverage_filename }}'
@@ -26,10 +31,11 @@ runs:
         output: 'both'
     - name: Add Coverage PR Comment
       uses: marocchino/sticky-pull-request-comment@v2
-      if: github.event_name == 'pull_request'
+      if: ${{ github.event_name == 'pull_request' && steps.copy_coverage_files.found_coverage_file == 'true' }}
       with:
         recreate: true
         path: code-coverage-results.md
     - name: Write to Job Summary
+      if: ${{ steps.copy_coverage_files.found_coverage_file == 'true'}}
       shell: bash
       run: cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
