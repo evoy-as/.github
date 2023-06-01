@@ -16,11 +16,11 @@ runs:
         mkdir -p coverage
         found_coverage_file='false'
         files=$(find . -name '${{ inputs.coverage_filename }}' | grep -Ev '$HOSTNAME')
-          for file in $files; do
-            found_coverage_file='true'
-            cp "$file" ./coverage
+        for file in $files; do
+          found_coverage_file='true'
+          cp "$file" ./coverage
         done
-        echo "found_coverage_file='$found_coverage_file'" >> "$GITHUB_OUTPUT"
+        echo "found_coverage_file='$found_coverage_file'" >> $GITHUB_OUTPUT
     - name: Code Coverage Summary Report
       if: ${{ steps.copy_coverage_files.found_coverage_file == 'true'}}
       uses: irongut/CodeCoverageSummary@v1.3.0
