@@ -16,8 +16,14 @@ runs:
     - name: dotnet ${{ inputs.command }}
       shell: bash
       run: |
-        for file in ${{ inputs.projects }}; do
-            echo "${{ inputs.command }} $file"
-            echo "cmd: dotnet ${{ inputs.command }} $file ${{inputs.arguments}}"
-            dotnet ${{ inputs.command }} $file ${{inputs.arguments}}
+        filter="${{ inputs.projects }}"
+        for file in $filter; do
+          if [ "$file" = "$filter" ]
+          then
+              echo "No match found: $file"
+          else
+              echo "${{ inputs.command }} $file"
+              echo "cmd: dotnet ${{ inputs.command }} $file ${{inputs.arguments}}"
+              dotnet ${{ inputs.command }} $file ${{inputs.arguments}}
+          fi
         done
