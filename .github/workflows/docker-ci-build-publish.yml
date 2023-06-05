@@ -11,6 +11,10 @@ on:
             always_push_docker:
               required: false
               type: boolean
+            docker_context:
+              required: false
+              type: string
+              default: .
         outputs:
             sem_ver:
               description: "SemVer from GitVersion"
@@ -77,7 +81,7 @@ jobs:
         id: build-and-push
         uses: docker/build-push-action@v4
         with:
-            context: .
+            context: ${{ inputs.docker_context }}
             push: ${{ steps.push-docker.outputs.pushDocker == 'true'}}
             tags: ${{ steps.docker-image-url.outputs.imageUrl }}
             platforms: ${{ inputs.build_platforms }}
