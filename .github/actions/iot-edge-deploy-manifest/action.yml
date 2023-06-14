@@ -77,7 +77,7 @@ runs:
         deployment-name: ${{ steps.deployment-details.outputs.deployment-name }}
         layered: true
         iot-hub-name: ${{ steps.deployment-details.outputs.iot-hub-name }}
-        priority: 3
+        priority: ${{ inputs.priority }}
         target-condition: ${{ inputs.target_condition }}
     - name: "Deploy skipped due to existing tag ${{ inputs.sem_ver  }}"
       if: ${{ inputs.image == null }}
