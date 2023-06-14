@@ -2,7 +2,7 @@
 
 The action creates an IoT Edge deployment in a target IoT Hub.
 
-:exclamation: NB! If there is an existing deployment in the IoT Hub with an equal deployment name, then the existing deployment will be deleted to avoid duplicates.
+:exclamation: NOTE: If there is an existing deployment in the IoT Hub with an equal deployment name, then the existing deployment will be deleted to avoid duplicates. TODO: add a new parameter (type boolean) to be able to turn this functionality on or off (default to off).
 
 ## Usage
 
