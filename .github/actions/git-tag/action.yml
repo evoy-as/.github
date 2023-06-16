@@ -15,10 +15,12 @@ inputs:
     required: true
     type: string
   user-email:
+    default: github-actions[bot]@users.noreply.github.com
     description: "The email to use for the tagger in the annotated tag."
     required: false
     type: string
   user-name:
+    default: github-actions[bot]
     description: "The name to use for the tagger in the annotated tag."
     required: false
     type: string
