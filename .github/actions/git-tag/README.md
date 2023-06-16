@@ -14,15 +14,14 @@ Read more about tagging at [Git Basics - Tagging](https://git-scm.com/book/en/v2
 - uses: evoy-as/.github/.github/actions/git-tag@main
   with:
     # Add an annotated tag. The provided string will be used as the annotation message. Defaults to null.
-    # NB!: Annotated tags requires both the user-email and user-name parameters to be provided.
     annotation: "My annotated message."
     # Replace an existing tag with the given name (instead of failing). Defaults to false.
     force: true
     # The tagname.
     tag: v1.2.3
-    # The email to use for the tagger in the annotated tag.
+    # The email to use for the tagger in the annotated tag. Defaults to github-actions[bot]@users.noreply.github.com.
     user-email: github-actions@github.com
-    # The name to use for the tagger in the annotated tag.
+    # The name to use for the tagger in the annotated tag. Defaults to github-actions.
     user-name: github-actions
 ```
 
@@ -32,27 +31,38 @@ A lightweight tag requires a bare minimum of information, as it is just a pointe
 
 ```yaml
 - steps:
+    - uses: evoy-as/.github/.github/actions/git-tag@main
+      with:
+        tag: v1.2.3
+```
 
-- uses: evoy-as/.github/.github/actions/git-tag@main
-  with:
-    tag: v1.2.3
+### Example of annotated tag
+
+The annotated tag will default to using the **github-actions[bot]** user as the tagger.
+
+```yaml
+- steps:
+    - uses: evoy-as/.github/.github/actions/git-tag@main
+      with:
+        annotation: "My annotated tag"
+        tag: v1.2.3
 ```
 
 ### Example of annotated tag with user information from HEAD reference
 
 ```yaml
-steps:
-  - uses: actions/checkout@v3
+- steps:
+    - uses: actions/checkout@v3
 
-  - id: author
-    run: |
-      echo "name=$(git log -n 1 --pretty=format:%an)" >> "$GITHUB_OUTPUT"
-      echo "email=$(git log -n 1 --pretty=format:%ae)" >> "$GITHUB_OUTPUT"
+    - id: author
+      run: |
+        echo "name=$(git log -n 1 --pretty=format:%an)" >> "$GITHUB_OUTPUT"
+        echo "email=$(git log -n 1 --pretty=format:%ae)" >> "$GITHUB_OUTPUT"
 
-  - uses: evoy-as/.github/.github/actions/git-tag@main
-    with:
-      annotation: "My annotated tag"
-      tag: v1.2.3
-      user-email: ${{ steps.author.outputs.email }}
-      user-name: ${{ steps.author.outputs.name }}
+    - uses: evoy-as/.github/.github/actions/git-tag@main
+      with:
+        annotation: "My annotated tag"
+        tag: v1.2.3
+        user-email: ${{ steps.author.outputs.email }}
+        user-name: ${{ steps.author.outputs.name }}
 ```
