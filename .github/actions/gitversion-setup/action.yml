@@ -20,3 +20,4 @@ runs:
       with:
           useConfigFile: true
           configFilePath: ${{ github.action_path }}/../../GitVersion.yml
+          additionalArguments: /updateprojectfiles
