@@ -1,0 +1,87 @@
+name: Builds a Docker image with support for multi-platform images using Buildx and QEMU and push to registry
+
+inputs:
+  cache-from:
+    default: type=gha
+    description:
+    required: false
+    type: string
+  cache-to:
+    default: "type=gha,mode=max"
+    description:
+    required: false
+    type: string
+  context:
+    default: "."
+    description:
+    required: false
+    type: string
+  file:
+    description: Path to the Dockerfile. (default {context}/Dockerfile)
+    required: false
+    type: string
+  push:
+    default: false
+    description:
+    required: false
+    type: boolean
+  platforms:
+    description:
+    required: false
+    type: string
+  registry:
+    default: acrevoy.azurecr.io
+    description:
+    required: false
+    type: string
+  registry-password:
+    required: false
+    type: string
+  registry-username:
+    description:
+    required: false
+    type: string
+  repository:
+    description: The name of the repository that the image should be pushed to.
+    required: false
+    type: string
+  tags:
+    description: Multiline or comma separated list of image tagnames.
+
+runs:
+  using: "composite"
+  steps:
+    # Format and prefix all tags with registry and repository.
+    - id: variables
+      run: |
+        prefix="${{ inputs.registry }}/${{ inputs.repository }}:"
+        formatted=$prefix$(echo "${{ inputs.tags }}" | sed -e ':a;N;$!ba;s/\s\+/,/g' | sed "s|,|,$prefix|g")
+        echo $formatted
+        echo "formatted-tags=$formatted"  >> "$GITHUB_OUTPUT"
+      shell: bash
+
+    # Support multi-platform
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Login to Docker Hub
+      if: ${{ inputs.push }}
+      uses: docker/login-action@v2
+      with:
+        password: ${{ inputs.registry-password }}
+        registry: ${{ inputs.registry }}
+        username: ${{ inputs.registry-username }}
+
+    - name: Build and push
+      uses: docker/build-push-action@v4
+      with:
+        cache-from: ${{ inputs.cache-from }}
+        cache-to: ${{ inputs.cache-to }}
+        context: ${{ inputs.context }}
+        file: ${{ inputs.file }}
+        platforms: ${{ inputs.platforms }}
+        push: ${{ inputs.push }}
+        tags: ${{ steps.variables.outputs.formatted-tags }}

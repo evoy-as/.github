@@ -18,7 +18,6 @@ on:
             docker_file:
               required: false
               type: string
-              default: ''
         outputs:
             sem_ver:
               description: "SemVer from GitVersion"
@@ -28,7 +27,6 @@ on:
               value: ${{ jobs.build.outputs.imageUrl }}
           
 env:
-    REGISTRY: acrevoy.azurecr.io
     IMAGE_NAME: ${{ github.event.repository.name }}
 jobs:
   build:
@@ -55,12 +53,6 @@ jobs:
         run: |
           echo "Semver: $GitVersion_SemVer"
           echo "semVer=$GitVersion_SemVer" >> $GITHUB_OUTPUT
-      # Support multi-platform
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-      # Workaround: https://github.com/docker/build-push-action/issues/461
-      - name: Setup Docker buildx
-        uses: docker/setup-buildx-action@v2
       - uses: mukunku/tag-exists-action@v1.2.0
         id: checkTag
         with: 
@@ -70,40 +62,17 @@ jobs:
       - id: push-docker
         run: |
           echo "pushDocker=${{ (github.event_name != 'pull_request' || inputs.always_push_docker == true) && steps.checkTag.outputs.exists == 'false' }}" >> "$GITHUB_OUTPUT"
-      - name: Log into registry ${{ env.REGISTRY }}
-        if: steps.push-docker.outputs.pushDocker == 'true'
-        uses: docker/login-action@v2
-        with:
-            registry: ${{ env.REGISTRY }}
-            username: ${{ vars.ACR_USER }}
-            password: ${{ secrets.ACR_PASSWORD }}
-      - id: docker-image-url
-        if: steps.push-docker.outputs.pushDocker == 'true'
-        run: | 
-            echo "imageUrl=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.gitversion_output.outputs.semVer }}" >> "$GITHUB_OUTPUT"
       - name: Build and push Docker image
-        id: build-and-push
-        if: inputs.docker_file == ''
-        uses: docker/build-push-action@v4
+        uses: ./.github/actions/docker-buildx
         with:
-            context: ${{ inputs.docker_context }}
-            push: ${{ steps.push-docker.outputs.pushDocker == 'true'}}
-            tags: ${{ steps.docker-image-url.outputs.imageUrl }}
-            platforms: ${{ inputs.build_platforms }}
-            cache-from: type=gha
-            cache-to: type=gha,mode=max
-      - name: Build and push Docker image with file path
-        id: build-and-push-file
-        if: inputs.docker_file != ''
-        uses: docker/build-push-action@v4
-        with:
-            context: ${{ inputs.docker_context }}
-            file: ${{ inputs.docker_file }}
-            push: ${{ steps.push-docker.outputs.pushDocker == 'true'}}
-            tags: ${{ steps.docker-image-url.outputs.imageUrl }}
-            platforms: ${{ inputs.build_platforms }}
-            cache-from: type=gha
-            cache-to: type=gha,mode=max
+          context: ${{ inputs.docker_context }}
+          file: ${{ inputs.docker_file }}
+          platforms: ${{ inputs.build_platforms }}
+          push: ${{ steps.push-docker.outputs.pushDocker == 'true'}}
+          registry-username: ${{ vars.ACR_USER }}
+          registry-password: ${{ secrets.ACR_PASSWORD }}
+          repository: ${{ env.IMAGE_NAME }}
+          tags: ${{ steps.gitversion_output.outputs.semVer }}
       - name: Tag GitVersion
         if: success() && steps.checkTag.outputs.exists == 'false'
         id: gitversion-tag
