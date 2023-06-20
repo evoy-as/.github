@@ -1,10 +1,10 @@
-#### 
+####
 # Requires a file named edge-deployment.json in the repo using the template.
 # See sample manifest: DeployEdgeManifest.json
 #
 ####
 name: IotEdgeManifestDeploy
-description: 'Deploy IoT Edge manifest'
+description: "Deploy IoT Edge manifest"
 inputs:
   azure_rbac_credentials:
     required: true
@@ -30,11 +30,11 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: 'Login via Azure CLI'
+    - name: "Login via Azure CLI"
       uses: azure/login@v1
       with:
         creds: ${{ inputs.azure_rbac_credentials }}
-    - name: 'Set image url in manifest file'
+    - name: "Set image url in manifest file"
       uses: cschleiden/replace-tokens@v1
       with:
         files: '["edge-deployment.json"]'
@@ -43,10 +43,8 @@ runs:
     - name: Show edge deployment
       shell: bash
       run: |
-          cat edge-deployment.json
-    - name: 'Deploy edge manifest to IoT Hub'
-      if: ${{ inputs.image != null }}
-      shell: bash
+        cat edge-deployment.json
+    - id: deployment-details
       run: |
         branch_name=${{ github.ref }}
         echo "Branch: $branch_name"
@@ -65,25 +63,24 @@ runs:
             env="dev"
         fi 
         iot_hub_name=$(az iot hub list --query "[?starts_with(name,'iot-$env-evoy-')].name" --output tsv)
-        echo "Deploying to IoT Hub: '$iot_hub_name'"
-        existingDeployment=$(az iot edge deployment list --hub-name $iot_hub_name --query "reverse(sort_by([?starts_with(id,'$deployment_name')].{id:id, created:createdTimeUtc}, &created))[0].id" --output tsv)
-        
         deployment_name="$deployment_name-$build_id"
-        echo "Creating deployment: '$deployment_name'"
-        echo 'az iot edge deployment create -n $iot_hub_name -d "$deployment_name" --content edge-deployment.json --target-condition "${{ inputs.target_condition }}" --layered --priority ${{ inputs.priority }}'
-        az iot edge deployment create -n $iot_hub_name -d "$deployment_name" --content edge-deployment.json --target-condition "${{ inputs.target_condition }}" --layered --priority ${{ inputs.priority }}
-        
-        if [ ! -z "$existingDeployment" ]
-        then
-            echo "Deleting previous deployment: '$existingDeployment'"
-            az iot edge deployment delete -n $iot_hub_name -d "$existingDeployment"
-        fi
-    - name: 'Deploy skipped due to existing tag ${{ inputs.sem_ver  }}'
+
+        echo "iot-hub-name=$iot_hub_name" >> "$GITHUB_OUTPUT"
+        echo "deployment-name="$deployment_name-$build_id" >> "$GITHUB_OUTPUT"
+      shell: bash
+    - name: "Deploy edge manifest to IoT Hub"
+      if: ${{ inputs.image != null }}
+      uses: "./.github/actions/iot-edge-deploy"
+      with:
+        azure-credentials: ${{ inputs.azure_rbac_credentials }}
+        content: edge-deployment.json
+        deployment-name: ${{ steps.deployment-details.outputs.deployment-name }}
+        layered: true
+        iot-hub-name: ${{ steps.deployment-details.outputs.iot-hub-name }}
+        priority: ${{ inputs.priority }}
+        target-condition: ${{ inputs.target_condition }}
+    - name: "Deploy skipped due to existing tag ${{ inputs.sem_ver  }}"
       if: ${{ inputs.image == null }}
       shell: bash
       run: |
         echo "Deploy skipped due to existing tag ${{ inputs.sem_ver  }}"
-    - name: Azure logout
-      shell: bash
-      run: |
-        az logout
