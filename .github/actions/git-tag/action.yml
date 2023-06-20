@@ -1,0 +1,56 @@
+name: Create and push a tag for the current commit reference
+
+inputs:
+  annotation:
+    description: "Add an annotated tag. The provided string will be used as the annotation message. Defaults to null."
+    required: false
+    type: string
+  force:
+    default: false
+    description: "Replace an existing tag with the given name (instead of failing). Defaults to false."
+    required: false
+    type: boolean
+  tag:
+    description: "The tagname."
+    required: true
+    type: string
+  user-email:
+    default: github-actions[bot]@users.noreply.github.com
+    description: "The email to use for the tagger in the annotated tag."
+    required: false
+    type: string
+  user-name:
+    default: github-actions[bot]
+    description: "The name to use for the tagger in the annotated tag."
+    required: false
+    type: string
+
+runs:
+  using: "composite"
+  steps:
+    - name: Exit if missing user information for annotated tags.
+      if: ${{ inputs.annotation != null && (inputs.user-email == null || inputs.user-name == null) }}
+      run: |
+        echo "::error ::Annotated tags requires both user-email and user-name parameter to be provided."
+        exit 1
+      shell: bash
+
+    - name: Add lightweight tag
+      if: ${{ inputs.annotation == null }}
+      run: |
+        git tag "${{ inputs.tag }}"${{ inputs.force == true && ' --force' || '' }}
+      shell: bash
+
+    - name: Add annotated tag
+      if: ${{ inputs.annotation != null }}
+      run: |
+        git config user.name "${{ inputs.user-name }}"
+        git config user.email "${{ inputs.user-email }}"
+        git tag -a "${{ inputs.tag }}" -m "${{ inputs.annotation }}"${{ inputs.force == true && ' --force' || '' }}
+      shell: bash
+
+    - name: Show and push the tag
+      run: |
+        git show "${{ inputs.tag }}"
+        git push origin "${{ inputs.tag }}"${{ inputs.force == true && ' --force' || '' }}
+      shell: bash
