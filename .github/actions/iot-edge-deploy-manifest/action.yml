@@ -70,7 +70,7 @@ runs:
       shell: bash
     - name: "Deploy edge manifest to IoT Hub"
       if: ${{ inputs.image != null }}
-      uses: "./.github/actions/iot-edge-deploy"
+      uses: "evoy-as/.github/.github/actions/iot-edge-deploy@main"
       with:
         azure-credentials: ${{ inputs.azure_rbac_credentials }}
         content: edge-deployment.json
