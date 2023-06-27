@@ -41,7 +41,7 @@ jobs:
       - run: | 
           echo "Tag exists: ${{ steps.checkTag.outputs.exists }}"
       - name: Build and push Docker image
-        uses: ./.github/actions/docker-buildx
+        uses: evoy-as/.github/.github/actions/docker-buildx@main
         with:
           platforms: linux/amd64
           push: true

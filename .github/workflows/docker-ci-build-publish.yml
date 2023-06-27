@@ -63,7 +63,7 @@ jobs:
         run: |
           echo "pushDocker=${{ (github.event_name != 'pull_request' || inputs.always_push_docker == true) && steps.checkTag.outputs.exists == 'false' }}" >> "$GITHUB_OUTPUT"
       - name: Build and push Docker image
-        uses: ./.github/actions/docker-buildx
+        uses: evoy-as/.github/.github/actions/docker-buildx@main
         with:
           context: ${{ inputs.docker_context }}
           file: ${{ inputs.docker_file }}
