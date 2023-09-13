@@ -64,6 +64,7 @@ runs:
         iot_hub_name: ${{ inputs.iot-hub-name }}
 
     - name: "Logout of Azure CLI"
+      shell: bash
       run: |
         az logout
         az cache purge
