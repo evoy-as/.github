@@ -50,14 +50,15 @@ runs:
         echo "Deploying to IoT Hub: '$iot_hub_name'"
         existingDeployment=$(az iot edge deployment list --hub-name $iot_hub_name --query "reverse(sort_by([?id=='$deployment_name'].{id:id, created:createdTimeUtc}, &created))[0].id" --output tsv)
 
-        echo "Creating deployment: '$deployment_name'"
-        az iot edge deployment create -n $iot_hub_name -d "$deployment_name" --content ${{ inputs.content }} --target-condition "${{ inputs.target-condition }}" --layered ${{ inputs.layered }} --priority ${{ inputs.priority }}
-
         if [ ! -z "$existingDeployment" ]
         then
             echo "Deleting previous deployment: '$existingDeployment'"
             az iot edge deployment delete -n $iot_hub_name -d "$existingDeployment"
         fi
+
+        echo "Creating deployment: '$deployment_name'"
+        az iot edge deployment create -n $iot_hub_name -d "$deployment_name" --content ${{ inputs.content }} --target-condition "${{ inputs.target-condition }}" --layered ${{ inputs.layered }} --priority ${{ inputs.priority }}
+
       shell: bash
       env:
         deployment_name: ${{ inputs.deployment-name }}
