@@ -5,11 +5,11 @@ name: docker_ci_build_publish
 on: 
     workflow_call:
         inputs:
-           registry_host:
+            registry_host:
               required: false
               type: string
-              default: acrevoy.azurecr.io
-           registry_password:
+              default: 'acrevoy.azurecr.io'
+            registry_password:
               required: false
               type: string
               default: ${{ vars.ACR_PASSWORD }}
@@ -19,8 +19,8 @@ on:
               type: string
               default: ${{ vars.ACR_USER }}
             build_platforms:
-                required: true
-                type: string
+              required: true
+              type: string
             always_push_docker:
               required: false
               type: boolean
@@ -58,6 +58,11 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      - name: Setup .NET
+        if: ${{ env.ACT }}
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 7.x
       - name: Determine GitVersion
         id: gitversion
         uses: evoy-as/.github/.github/actions/gitversion-setup@main
@@ -72,7 +77,8 @@ jobs:
           tag: 'v${{ steps.gitversion_output.outputs.semVer }}'
       - run: | 
           echo "Tag exists: ${{ steps.checkTag.outputs.exists }}"
-      - id: push-docker
+      - name: Set pushDocker variable
+        id: push-docker
         run: |
           echo "pushDocker=${{ (github.event_name != 'pull_request' || inputs.always_push_docker == true) && steps.checkTag.outputs.exists == 'false' }}" >> "$GITHUB_OUTPUT"
       - name: Build and push Docker image
@@ -81,10 +87,10 @@ jobs:
           context: ${{ inputs.docker_context }}
           file: ${{ inputs.docker_file }}
           platforms: ${{ inputs.build_platforms }}
-          push: ${{ steps.push-docker.outputs.pushDocker == 'true'}}
-          registry: ${{ input.registry_host }}
-          registry-username: ${{ input.registry_username }}
-          registry-password: ${{ input.registry_password }}
+          push: ${{ steps.push-docker.outputs.pushDocker == true}}
+          registry: ${{ inputs.registry_host }}
+          registry-username: ${{ inputs.registry_username }}
+          registry-password: ${{ inputs.registry_password }}
           repository: ${{ env.IMAGE_NAME }}
           tags: ${{ steps.gitversion_output.outputs.semVer }}
       - name: Tag GitVersion
