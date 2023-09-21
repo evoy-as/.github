@@ -12,7 +12,7 @@ on:
             registry_password:
               required: false
               type: string
-              default: ${{ vars.ACR_PASSWORD }}
+              default: ${{ secrets.GITHUB_TOKEN }}
             registry_username:
               description:
               required: false
