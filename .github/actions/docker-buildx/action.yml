@@ -51,7 +51,7 @@ inputs:
     description: Image description which will be shown in github container registry
     required: false
     type: string
-    default: "${{ inputs.repository }} multi-arch image"
+    default: "-"
 outputs:
   metadata: 
     description: Docker buildpush Metadata output
