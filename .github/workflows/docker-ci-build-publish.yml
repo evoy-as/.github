@@ -5,6 +5,19 @@ name: docker_ci_build_publish
 on: 
     workflow_call:
         inputs:
+           registry_host:
+              required: false
+              type: string
+              default: acrevoy.azurecr.io
+           registry_password:
+              required: false
+              type: string
+              default: ${{ vars.ACR_PASSWORD }}
+            registry_username:
+              description:
+              required: false
+              type: string
+              default: ${{ vars.ACR_USER }}
             build_platforms:
                 required: true
                 type: string
@@ -69,8 +82,9 @@ jobs:
           file: ${{ inputs.docker_file }}
           platforms: ${{ inputs.build_platforms }}
           push: ${{ steps.push-docker.outputs.pushDocker == 'true'}}
-          registry-username: ${{ vars.ACR_USER }}
-          registry-password: ${{ secrets.ACR_PASSWORD }}
+          registry: ${{ input.registry_host }}
+          registry-username: ${{ input.registry_username }}
+          registry-password: ${{ input.registry_password }}
           repository: ${{ env.IMAGE_NAME }}
           tags: ${{ steps.gitversion_output.outputs.semVer }}
       - name: Tag GitVersion
