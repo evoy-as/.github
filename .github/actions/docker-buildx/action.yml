@@ -53,7 +53,9 @@ inputs:
     type: string
     default: ''
 outputs:
-  metadata: ${{ steps.build_push.outputs.metadata  }}
+  metadata: 
+    description: Docker buildpush Metadata output
+    value: ${{ steps.build_push.outputs.metadata  }}
 runs:
   using: "composite"
   steps:
