@@ -53,11 +53,9 @@ inputs:
     type: string
     default: ''
 outputs:
-  metadata: ${{ jobs.runs.outputs.metadata }}
+  metadata: ${{ steps.build_push.outputs.metadata  }}
 runs:
   using: "composite"
-  outputs:
-    metadata: ${{ steps.build_push.outputs.metadata }}
   steps:
     # Format and prefix all tags with registry and repository.
     - id: variables
