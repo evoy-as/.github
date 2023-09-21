@@ -75,7 +75,7 @@ runs:
         deployment_name="$deployment_name-$build_id"
 
         echo "iot-hub-name=$iot_hub_name" >> "$GITHUB_OUTPUT"
-        echo "deployment-name=$deployment_name-$build_id" >> "$GITHUB_OUTPUT"
+        echo "deployment-name=$deployment_name" >> "$GITHUB_OUTPUT"
       shell: bash
     - name: "Deploy edge manifest to IoT Hub"
       if: ${{ inputs.image != null }}
