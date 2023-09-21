@@ -2,6 +2,7 @@
 # Requires a file named edge-deployment.json in the repo using the template.
 # See sample manifest: DeployEdgeManifest.json
 #
+# uses: evoy-as/.github/.github/actions/iot-edge-deploy-manifest@main
 ####
 name: IotEdgeManifestDeploy
 description: "Deploy IoT Edge manifest"
