@@ -27,6 +27,14 @@ inputs:
     required: false
     type: string
     default: 3
+  deployment_name_prefix:
+    required: false
+    type: string
+    default: ci
+  deployment_name:
+    required: false
+    type: string
+    default: ${{ github.event.repository.name }}
 runs:
   using: "composite"
   steps:
@@ -49,7 +57,7 @@ runs:
         branch_name=${{ github.ref }}
         echo "Branch: $branch_name"
         build_id="${{ inputs.sem_ver }}"
-        deployment_name="ci-${{ github.event.repository.name }}"
+        deployment_name="${{inputs.deployment_name_prefix}}-${{ inputs.deployment_name }}"
 
         echo "Install azure-iot extension"
         az config set extension.use_dynamic_install=yes_without_prompt

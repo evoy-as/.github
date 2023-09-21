@@ -24,6 +24,9 @@ The action creates an IoT Edge deployment in a target IoT Hub.
     priority: 3
     # Target condition in which an edge deployment applies to. Deployments with no target condition will target no device.
     target-condition: ""
+    # Set to true if existing deployment should be updated instead of creating a new deployment before deleting the previous.
+    # NOTE: Semver needs to be part of the deployment-name when set to true
+    update-deployment: false
 ```
 
 Read more about the different parameters at [az iot edge deployment create](https://learn.microsoft.com/en-us/cli/azure/iot/edge/deployment?view=azure-cli-latest#az-iot-edge-deployment-create)
