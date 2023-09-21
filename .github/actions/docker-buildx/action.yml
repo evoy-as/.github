@@ -92,7 +92,7 @@ runs:
         then
             output_type="registry" # Push to registry
         fi
-        echo "output_type="$output_type" >> "$GITHUB_OUTPUT"
+        echo "output_type=$output_type" >> "$GITHUB_OUTPUT"
     - name: Build and push
       uses: docker/build-push-action@v4
       id: build_push
