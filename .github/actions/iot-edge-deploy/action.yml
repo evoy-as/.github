@@ -32,6 +32,11 @@ inputs:
     description: "The target condition of the deployment."
     required: false
     type: string
+  update-deployment:
+    default: false
+    description: "Set to true if existing deployment should be updated instead of creating a new deployment before deleting the previous"
+    required: false
+    type: bool
 
 runs:
   using: "composite"
@@ -48,17 +53,35 @@ runs:
         az extension add --name azure-iot
 
         echo "Deploying to IoT Hub: '$iot_hub_name'"
-        existingDeployment=$(az iot edge deployment list --hub-name $iot_hub_name --query "reverse(sort_by([?id=='$deployment_name'].{id:id, created:createdTimeUtc}, &created))[0].id" --output tsv)
 
-        if [ ! -z "$existingDeployment" ]
-        then
-            echo "Deleting previous deployment: '$existingDeployment'"
-            az iot edge deployment delete -n $iot_hub_name -d "$existingDeployment"
+        function delete_existing_deployment() {
+          if [ ! -z "$existingDeployment" ]
+          then
+              echo "Deleting previous deployment: '$existingDeployment'"
+              az iot edge deployment delete -n $iot_hub_name -d "$existingDeployment"
+          fi
+        }
+
+        if [[ ${{ inputs.update-deployment }} == true ]]; then
+            existingDeployment=$(az iot edge deployment list --hub-name $iot_hub_name --query "reverse(sort_by([?id=='$deployment_name'].{id:id, created:createdTimeUtc}, &created))[0].id" --output tsv)
+            if [ ! -z "$existingDeployment" ]
+            then
+              delete_existing_deployment
+                # echo "Deleting previous deployment: '$existingDeployment'"
+                # az iot edge deployment delete -n $iot_hub_name -d "$existingDeployment"
+            fi
+        else 
+            existingDeployment=$(az iot edge deployment list --hub-name $iot_hub_name --query "reverse(sort_by([?starts_with(id,'$deployment_name')].{id:id, created:createdTimeUtc}, &created))[0].id" --output tsv)
         fi
-
+       
         echo "Creating deployment: '$deployment_name'"
         az iot edge deployment create -n $iot_hub_name -d "$deployment_name" --content ${{ inputs.content }} --target-condition "${{ inputs.target-condition }}" --layered ${{ inputs.layered }} --priority ${{ inputs.priority }}
 
+        if [ $? -eq 0 ]; then 
+          if [[ ${{ inputs.update-deployment }} == false ]]; then
+            delete_existing_deployment
+          fi
+        fi
       shell: bash
       env:
         deployment_name: ${{ inputs.deployment-name }}

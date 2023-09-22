@@ -47,7 +47,15 @@ inputs:
     type: string
   tags:
     description: Multiline or comma separated list of image tagnames.
-
+  image-description:
+    description: Image description which will be shown in github container registry
+    required: false
+    type: string
+    default: "-"
+outputs:
+  metadata: 
+    description: Docker buildpush Metadata output
+    value: ${{ steps.build_push.outputs.metadata  }}
 runs:
   using: "composite"
   steps:
@@ -75,13 +83,24 @@ runs:
         registry: ${{ inputs.registry }}
         username: ${{ inputs.registry-username }}
 
+    - name: Set output type
+      shell: bash
+      id: docker_output_type
+      run: |
+        output_type="local"
+        if [ "${{ inputs.push }}" == "true" ]
+        then
+            output_type="registry" # Push to registry
+        fi
+        echo "output_type=$output_type" >> "$GITHUB_OUTPUT"
     - name: Build and push
       uses: docker/build-push-action@v4
+      id: build_push
       with:
         cache-from: ${{ inputs.cache-from }}
         cache-to: ${{ inputs.cache-to }}
         context: ${{ inputs.context }}
         file: ${{ inputs.file }}
         platforms: ${{ inputs.platforms }}
-        push: ${{ inputs.push }}
         tags: ${{ steps.variables.outputs.formatted-tags }}
+        outputs: "type=${{ steps.docker_output_type.outputs.output_type  }}, annotation-index.org.opencontainers.image.description=${{ inputs.image-description }}"

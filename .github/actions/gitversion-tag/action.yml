@@ -23,7 +23,7 @@ runs:
       run: | 
         echo "Tag exists: ${{ steps.checkTag.outputs.exists }}. Skipping tagging."
     - name: Tag version
-      if: ${{ github.ref == 'refs/heads/main' && steps.checkTag.outputs.exists == 'false' }}
+      if: ${{ (github.ref == github.event.repository.default_branch ) && steps.checkTag.outputs.exists == 'false' }}
       uses: "evoy-as/.github/.github/actions/git-tag@main"
       with:
         annotation: "Tagged version ${{ steps.gitversion.outputs.semVer }}"

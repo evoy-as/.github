@@ -2,17 +2,20 @@
 # Requires a file named edge-deployment.json in the repo using the template.
 # See sample manifest: DeployEdgeManifest.json
 #
+# uses: evoy-as/.github/.github/actions/iot-edge-deploy-manifest@main
 ####
 name: IotEdgeManifestDeploy
 description: "Deploy IoT Edge manifest"
 inputs:
   azure_rbac_credentials:
+    description: service principal in json format
     required: true
     type: string
   sem_ver:
     required: true
     type: string
   image:
+    description: Image url
     required: true
     type: string
   edge_deployment_fileName:
@@ -20,13 +23,24 @@ inputs:
     type: string
     default: edge-deployment.json
   target_condition:
+    description: IoT Hub target device condition
     required: true
     type: string
     default: tags.notset='true'
   priority:
+    description: IoT Hub deployment priority
     required: false
     type: string
     default: 3
+  deployment_name_prefix:
+    description: prefix to use for deployment name
+    required: false
+    type: string
+    default: ci
+  deployment_name:
+    required: false
+    type: string
+    default: ${{ github.event.repository.name }}
 runs:
   using: "composite"
   steps:
@@ -49,7 +63,7 @@ runs:
         branch_name=${{ github.ref }}
         echo "Branch: $branch_name"
         build_id="${{ inputs.sem_ver }}"
-        deployment_name="ci-${{ github.event.repository.name }}"
+        deployment_name="${{inputs.deployment_name_prefix}}-${{ inputs.deployment_name }}"
 
         echo "Install azure-iot extension"
         az config set extension.use_dynamic_install=yes_without_prompt
@@ -66,7 +80,7 @@ runs:
         deployment_name="$deployment_name-$build_id"
 
         echo "iot-hub-name=$iot_hub_name" >> "$GITHUB_OUTPUT"
-        echo "deployment-name="$deployment_name-$build_id" >> "$GITHUB_OUTPUT"
+        echo "deployment-name=$deployment_name" >> "$GITHUB_OUTPUT"
       shell: bash
     - name: "Deploy edge manifest to IoT Hub"
       if: ${{ inputs.image != null }}
