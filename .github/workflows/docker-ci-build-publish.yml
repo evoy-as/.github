@@ -96,7 +96,7 @@ jobs:
           registry-password: ${{ secrets.token }}
           repository: ${{ env.IMAGE_NAME }}
           tags: ${{ steps.gitversion_output.outputs.semVer }}
-          #image-description: ${{ inputs.image-description }}
+          image-description: ${{ inputs.image-description }}
       - name: Output image url
         id: docker-image-url
         if: steps.push-docker.outputs.push_docker == 'true'
