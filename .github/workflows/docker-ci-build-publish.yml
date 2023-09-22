@@ -29,6 +29,11 @@ on:
               required: false
               type: string
               default: ''
+            image_name:
+              description: Image name which will be shown in github container registry
+              required: false
+              type: string
+              default: ${{ github.event.repository.name }}
         secrets:
             token:
               required: true
@@ -41,7 +46,7 @@ on:
               value: ${{ jobs.build.outputs.imageUrl }}
           
 env:
-    IMAGE_NAME: ${{ github.event.repository.name }}
+    IMAGE_NAME: ${{ inputs.image_name }}
 jobs:
   build:
     runs-on: ubuntu-latest
