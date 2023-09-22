@@ -85,7 +85,7 @@ jobs:
       - name: Build and push Docker image
         id: docker-build
         #uses: evoy-as/.github/.github/actions/docker-buildx@main
-        uses: evoy-as/.github/.github/actions/docker-buildx@feature/8-support-gh-docker-registry
+        uses: evoy-as/.github/.github/actions/docker-buildx@main
         with:
           context: ${{ inputs.docker_context }}
           file: ${{ inputs.docker_file }}
