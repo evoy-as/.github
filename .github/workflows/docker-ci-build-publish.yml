@@ -8,16 +8,9 @@ on:
             registry_host:
               required: false
               type: string
-              default: 'acrevoy.azurecr.io'
-            registry_password:
-              required: false
-              type: string
-              default: ${{ vars.ACR_PASSWORD }}
             registry_username:
-              description:
               required: false
               type: string
-              default: ${{ vars.ACR_USER }}
             build_platforms:
               required: true
               type: string
@@ -31,6 +24,14 @@ on:
             docker_file:
               required: false
               type: string
+            image-description:
+              description: Image description which will be shown in github container registry
+              required: false
+              type: string
+              default: ''
+        secrets:
+            token:
+              required: true
         outputs:
             sem_ver:
               description: "SemVer from GitVersion"
@@ -80,19 +81,31 @@ jobs:
       - name: Set pushDocker variable
         id: push-docker
         run: |
-          echo "pushDocker=${{ (github.event_name != 'pull_request' || inputs.always_push_docker == true) && steps.checkTag.outputs.exists == 'false' }}" >> "$GITHUB_OUTPUT"
+          echo "push_docker=${{ (github.event_name != 'pull_request' || inputs.always_push_docker == true) && steps.checkTag.outputs.exists == 'false' }}" >> "$GITHUB_OUTPUT"
       - name: Build and push Docker image
-        uses: evoy-as/.github/.github/actions/docker-buildx@main
+        id: docker-build
+        #uses: evoy-as/.github/.github/actions/docker-buildx@main
+        uses: evoy-as/.github/.github/actions/docker-buildx@feature/8-support-gh-docker-registry
         with:
           context: ${{ inputs.docker_context }}
           file: ${{ inputs.docker_file }}
           platforms: ${{ inputs.build_platforms }}
-          push: ${{ steps.push-docker.outputs.pushDocker == true}}
+          push: ${{ steps.push-docker.outputs.push_docker}}
           registry: ${{ inputs.registry_host }}
           registry-username: ${{ inputs.registry_username }}
-          registry-password: ${{ inputs.registry_password }}
+          registry-password: ${{ secrets.token }}
           repository: ${{ env.IMAGE_NAME }}
           tags: ${{ steps.gitversion_output.outputs.semVer }}
+          #image-description: ${{ inputs.image-description }}
+      - name: Output image url
+        id: docker-image-url
+        if: steps.push-docker.outputs.push_docker == 'true'
+        run: | 
+            metadata='${{ steps.docker-build.outputs.metadata }}'
+            echo '$metadata'
+            image_url=$(jq -r '."image.name"' <<< $metadata)
+            echo "$image_url"
+            echo "imageUrl=$image_url" >> "$GITHUB_OUTPUT"
       - name: Tag GitVersion
         if: success() && steps.checkTag.outputs.exists == 'false'
         id: gitversion-tag
