@@ -55,20 +55,15 @@ runs:
         echo "Deploying to IoT Hub: '$iot_hub_name'"
 
         function delete_existing_deployment() {
-          if [ ! -z "$existingDeployment" ]
-          then
-              echo "Deleting previous deployment: '$existingDeployment'"
-              az iot edge deployment delete -n $iot_hub_name -d "$existingDeployment"
-          fi
+            echo "Deleting previous deployment: '$1'"
+            az iot edge deployment delete -n $iot_hub_name -d "$1"
         }
 
         if [[ ${{ inputs.update-deployment }} == true ]]; then
             existingDeployment=$(az iot edge deployment list --hub-name $iot_hub_name --query "reverse(sort_by([?id=='$deployment_name'].{id:id, created:createdTimeUtc}, &created))[0].id" --output tsv)
             if [ ! -z "$existingDeployment" ]
             then
-              delete_existing_deployment
-                # echo "Deleting previous deployment: '$existingDeployment'"
-                # az iot edge deployment delete -n $iot_hub_name -d "$existingDeployment"
+              delete_existing_deployment "$existingDeployment"
             fi
         else 
             existingDeployment=$(az iot edge deployment list --hub-name $iot_hub_name --query "reverse(sort_by([?starts_with(id,'$deployment_name')].{id:id, created:createdTimeUtc}, &created))[0].id" --output tsv)
