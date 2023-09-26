@@ -10,7 +10,7 @@ inputs:
     required: true
     type: string
   deployment-name:
-    description: "The name used for the deployment."
+    description: "The name used for the deployment. Deployment name must end with - before version number. Example. cd-iot-edge-1_0_0"
     required: true
     type: string
   layered:
@@ -66,7 +66,9 @@ runs:
               delete_existing_deployment "$existingDeployment"
             fi
         else 
-            existingDeployment=$(az iot edge deployment list --hub-name $iot_hub_name --query "reverse(sort_by([?starts_with(id,'$deployment_name')].{id:id, created:createdTimeUtc}, &created))[0].id" --output tsv)
+            # Find the previous deployment which starts with the same name without the version number.
+            deployment_name_without_version=$(echo "$deployment_name" | grep -Po '.*(?=-)')
+            existingDeployment=$(az iot edge deployment list --hub-name $iot_hub_name --query "reverse(sort_by([?starts_with(id,'$deployment_name_without_version')].{id:id, created:createdTimeUtc}, &created))[0].id" --output tsv)
         fi
        
         echo "Creating deployment: '$deployment_name'"
@@ -74,7 +76,7 @@ runs:
 
         if [ $? -eq 0 ]; then 
           if [[ ${{ inputs.update-deployment }} == false ]]; then
-            delete_existing_deployment
+            delete_existing_deployment "$existingDeployment"
           fi
         fi
       shell: bash
