@@ -76,8 +76,11 @@ runs:
         az iot edge deployment create -n $iot_hub_name -d "$deployment_name" --content ${{ inputs.content }} --target-condition "${{ inputs.target-condition }}" --layered ${{ inputs.layered }} --priority ${{ inputs.priority }}
 
         if [ $? -eq 0 ]; then 
-          if [[ ${{ inputs.update-deployment }} == false ]]; then
-            delete_existing_deployment "$existingDeployment"
+          if [[ "${{ inputs.update-deployment }}" == "false" ]]; then
+            if [ ! -z "$existingDeployment" ]
+            then
+              delete_existing_deployment "$existingDeployment"
+            fi
           fi
         fi
       shell: bash
