@@ -103,4 +103,4 @@ runs:
         file: ${{ inputs.file }}
         platforms: ${{ inputs.platforms }}
         tags: ${{ steps.variables.outputs.formatted-tags }}
-        outputs: "'type=${{ steps.docker_output_type.outputs.output_type  }}, annotation-index.org.opencontainers.image.description=${{ inputs.image-description }}'"
+        outputs: "type=${{ steps.docker_output_type.outputs.output_type  }}, annotation-index.org.opencontainers.image.description=${{ inputs.image-description }}"
