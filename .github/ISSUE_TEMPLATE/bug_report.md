@@ -10,6 +10,18 @@ assignees: ''
 **Describe the bug**
 A clear and concise description of what the bug is.
 
+### Output of `error log` highlighting the issue
+
+<details>
+<summary>Click <ins>here</ins> to view details</summary>
+
+```shell
+
+PASTE_YOUR_LOG_CONTENT_HERE
+
+```
+</details>
+
 **To Reproduce**
 Steps to reproduce the behavior:
 
