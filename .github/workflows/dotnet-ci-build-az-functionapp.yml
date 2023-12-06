@@ -149,6 +149,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ needs.deploy.outputs.semVer }}
         run: |
+          echo "Tag: $tag"
           release=$(gh release list | awk '{ print $2 }' | grep $tag || true)
           if [ ! -z "$release" ]  
           then
