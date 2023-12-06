@@ -133,6 +133,7 @@ jobs:
       uses: evoy-as/.github/.github/actions/gitversion-tag@main
 
   create_release:
+    if: github.ref_name == github.event.repository.default_branch
     needs: deploy
     name: Create release
     permissions:
@@ -140,8 +141,10 @@ jobs:
       pull-requests: write
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - name: Create Release
-        if: github.ref_name == github.event.repository.default_branch 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ needs.deploy.outputs.semVer }}
