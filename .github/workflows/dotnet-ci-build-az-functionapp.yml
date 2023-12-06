@@ -132,13 +132,31 @@ jobs:
       id: gitversion-tag
       uses: evoy-as/.github/.github/actions/gitversion-tag@main
 
-  update_release_draft:
+  create_release:
     needs: deploy
+    name: Create release
     permissions:
       contents: write
       pull-requests: write
     runs-on: ubuntu-latest
     steps:
-      - uses: release-drafter/release-drafter@v5
+      - name: Create Release
+        if: github.ref_name == github.event.repository.default_branch 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ needs.deploy.outputs.semVer }}
+        run: |
+          release=$(gh release list | awk '{ print $2 }' | grep $tag || true)
+          if [ ! -z "$release" ]  
+          then
+              echo "Release $release exists."
+          else
+            echo "Creating release $release"
+            latest_release_tag=$(gh release list | grep 'Latest' | awk '{print $3}')
+            gh release create "$tag" \
+                --latest \
+                --repo="$GITHUB_REPOSITORY" \
+                --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
+                --generate-notes \
+                --notes-start-tag "$latest_release_tag"
+          fi
