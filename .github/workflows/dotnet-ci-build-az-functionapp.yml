@@ -80,7 +80,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     outputs: 
-      semVer: ${{ steps.gitversion-tag.outputs.semVer }}
+      semVer: ${{ env.GitVersion_SemVer }} # $GITHUB_ENV variable from gitversion-tag
     env:
         pulumi_stack_name: ${{ inputs.pulumi_stack_name }} 
 
@@ -147,7 +147,7 @@ jobs:
       - name: Create Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ env.GitVersion_SemVer }}
+          tag: ${{ needs.deploy.outputs.semVer }}
         run: |
           echo "Tag: $tag"
           release=$(gh release list | awk '{ print $2 }' | grep $tag || true)
