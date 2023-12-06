@@ -147,7 +147,7 @@ jobs:
       - name: Create Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ needs.deploy.outputs.semVer }}
+          tag: ${{ env.GitVersion_SemVer }}
         run: |
           echo "Tag: $tag"
           release=$(gh release list | awk '{ print $2 }' | grep $tag || true)
