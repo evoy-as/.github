@@ -160,7 +160,7 @@ jobs:
             gh release create "$tag" \
                 --latest \
                 --repo="$GITHUB_REPOSITORY" \
-                --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
+                --title="${tag#v}" \
                 --generate-notes \
                 --notes-start-tag "$latest_release_tag"
           fi
