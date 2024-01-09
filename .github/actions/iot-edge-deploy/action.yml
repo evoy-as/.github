@@ -69,7 +69,7 @@ runs:
             # Find the previous deployment which starts with the same name without the version number.
             deployment_name_without_version=$(echo "$deployment_name" | grep -Po '.*(?=-)')
             echo "Existing deployment to look for $deployment_name_without_version"
-            existingDeployment=$(az iot edge deployment list --hub-name $iot_hub_name --query "reverse(sort_by([?starts_with(id,'$deployment_name_without_version')].{id:id, created:createdTimeUtc}, &created))[0].id" --output tsv)
+            existingDeployment=$(az iot edge deployment list --hub-name $iot_hub_name --query "reverse(sort_by([?systemMetrics.results.appliedCount ==\`0\` && starts_with(id,'$deployment_name_without_version')].{id:id, created:createdTimeUtc}, &created))[0].id" --output tsv)
         fi
         echo "Existing deployment: '$existingDeployment'"
         echo "Creating deployment: '$deployment_name'"
