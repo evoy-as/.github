@@ -32,12 +32,13 @@ inputs:
     description: "The target condition of the deployment."
     required: false
     type: string
-  update-deployment:
-    default: false
-    description: "Set to true if existing deployment should be updated instead of creating a new deployment before deleting the previous"
+  deployment-strategy:
+    # IoT hub allows 100 deployment configurations, so we need to delete previous or unused deployements
+    # to avoid failed deployments
+    default: DeletePrevious
+    description: "Options are: Update, DeletePrevious, DeletePreRelease"
     required: false
-    type: bool
-
+    type: string
 runs:
   using: "composite"
   steps:
@@ -58,18 +59,24 @@ runs:
             echo "Deleting previous deployment: '$1'"
             az iot edge deployment delete -n $iot_hub_name -d "$1"
         }
-
-        if [[ ${{ inputs.update-deployment }} == true ]]; then
+      
+        if [[ "${{ inputs.deployment-strategy }}" == "Update" ]]; then
             existingDeployment=$(az iot edge deployment list --hub-name $iot_hub_name --query "reverse(sort_by([?id=='$deployment_name'].{id:id, created:createdTimeUtc}, &created))[0].id" --output tsv)
             if [ ! -z "$existingDeployment" ]
             then
               delete_existing_deployment "$existingDeployment"
             fi
         else 
-            # Find the previous deployment which starts with the same name without the version number.
-            deployment_name_without_version=$(echo "$deployment_name" | grep -Po '.*(?=-)')
-            echo "Existing deployment to look for $deployment_name_without_version"
-            existingDeployment=$(az iot edge deployment list --hub-name $iot_hub_name --query "reverse(sort_by([?systemMetrics.results.appliedCount ==\`0\` && starts_with(id,'$deployment_name_without_version')].{id:id, created:createdTimeUtc}, &created))[0].id" --output tsv)
+            # DeletePreRelease: Find any pre-release versions for the existing deployment. I.e. deployment-name='1.0.1' would find '1.0.1-pull-request1' if appliedCount=0
+            deployment_name_starts_with=$deployment_name
+            if [[ "${{ inputs.deployment-strategy }}" == "DeletePrevious" ]]; then
+            then
+              # Find the previous deployment which starts with the same name without the version number.
+              # Deployment name without version
+              deployment_name_starts_with=$(echo "$deployment_name" | grep -Po '.*(?=-)')
+            fi
+            echo "Existing deployment to look for $deployment_name_starts_with"
+            existingDeployment=$(az iot edge deployment list --hub-name $iot_hub_name --query "reverse(sort_by([?systemMetrics.results.appliedCount ==\`0\` && starts_with(id,'$deployment_name_starts_with')].{id:id, created:createdTimeUtc}, &created))[0].id" --output tsv)
         fi
         echo "Existing deployment: '$existingDeployment'"
         echo "Creating deployment: '$deployment_name'"
