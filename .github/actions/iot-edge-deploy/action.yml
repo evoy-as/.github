@@ -70,7 +70,6 @@ runs:
             # DeletePreRelease: Find any pre-release versions for the existing deployment. I.e. deployment-name='1.0.1' would find '1.0.1-pull-request1' if appliedCount=0
             deployment_name_starts_with=$deployment_name
             if [[ "${{ inputs.deployment-strategy }}" == "DeletePrevious" ]]; then
-            then
               # Find the previous deployment which starts with the same name without the version number.
               # Deployment name without version
               deployment_name_starts_with=$(echo "$deployment_name" | grep -Po '.*(?=-)')
