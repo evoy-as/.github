@@ -58,6 +58,7 @@ runs:
         function delete_existing_deployment() {
             echo "Deleting previous deployment: '$1'"
             az iot edge deployment delete -n $iot_hub_name -d "$1"
+            echo "Deleted previous deployment: '$1'"
         }
       
         if [[ "${{ inputs.deployment-strategy }}" == "Update" ]]; then
@@ -80,9 +81,10 @@ runs:
         echo "Existing deployment: '$existingDeployment'"
         echo "Creating deployment: '$deployment_name'"
         az iot edge deployment create -n $iot_hub_name -d "$deployment_name" --content ${{ inputs.content }} --target-condition "${{ inputs.target-condition }}" --layered ${{ inputs.layered }} --priority ${{ inputs.priority }}
+        echo "Created deployment: '$deployment_name'"
 
         if [ $? -eq 0 ]; then 
-          if [[ "${{ inputs.update-deployment }}" == "false" ]]; then
+          if [[ "${{ inputs.deployment-strategy }}" != "Update" ]]; then
             if [ ! -z "$existingDeployment" ]
             then
               delete_existing_deployment "$existingDeployment"
