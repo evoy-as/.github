@@ -105,7 +105,7 @@ jobs:
       uses: evoy-as/.github/.github/actions/dotnet-core@main
       with: 
         command: publish
-        arguments: --no-restore --configuration ${{ env.build_configuration }}  --framework net${{ inputs.dotnet-version }}
+        arguments: --no-restore --configuration ${{ env.build_configuration }}
         projects: "**/*FunctionApp.csproj"
     - name: Setup .NET
       uses: actions/setup-dotnet@v3

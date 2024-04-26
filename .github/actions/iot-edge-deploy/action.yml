@@ -102,3 +102,7 @@ runs:
         az logout
         az cache purge
         az account clear
+
+# dpkg --print-architecture
+# Linux rpi-agent-03 6.1.0-rpi7-rpi-v8 #1 SMP PREEMPT Debian 1:6.1.63-1+rpt1 (2023-11-24) aarch64 GNU/Linux
+# Linux raspberrypi  6.1.21-v8+ #1642 SMP PREEMPT Mon Apr  3 17:24:16 BST 2023 aarch64 GNU/Linux
