@@ -43,13 +43,6 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: ${{ inputs.dotnet-version }}.x
-    - name: Check code formatting
-      if: ${{ inputs.check-code-formatting }}
-      uses: evoy-as/.github/.github/actions/dotnet-core@main
-      with: 
-        command: format
-        arguments: --verify-no-changes
-        projects: "**/*.csproj"
     - name: Authenticate NuGet
       run: |
           dotnet nuget update source evoy -u ${{ github.event.repository.name }} -p ${{ secrets.GH_PACKAGES_TOKEN }} -s https://nuget.pkg.github.com/evoy-as/index.json --store-password-in-clear-text
@@ -63,6 +56,13 @@ jobs:
         command: restore
         projects: "**/*.csproj"
         arguments:
+    - name: Check code formatting
+      if: ${{ inputs.check-code-formatting }}
+      uses: evoy-as/.github/.github/actions/dotnet-core@main
+      with: 
+        command: format
+        arguments: --verify-no-changes
+        projects: "**/*.csproj"
     - name: Build the projects - ${{ env.build_configuration }}
       uses: evoy-as/.github/.github/actions/dotnet-core@main
       with: 
