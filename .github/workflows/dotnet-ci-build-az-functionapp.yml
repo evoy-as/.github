@@ -16,6 +16,10 @@ on:
             required: false
             type: string
             default: '7.0'
+          check-code-formatting:
+            required: false
+            type: boolean
+            default: false
       outputs:
           sem_ver:
             description: "SemVer from GitVersion"
@@ -35,13 +39,14 @@ jobs:
     
     steps:
     - uses: actions/checkout@v4
-    - name: whoami
-      run: |
-        whoami
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: ${{ inputs.dotnet-version }}.x
+    - name: "Check code formatting"
+      if: ${{ inputs.check-code-formatting }}
+      run: dotnet format ${{ env.solution_file }} --verify-no-changes
+      shell: bash
     - name: Authenticate NuGet
       run: |
           dotnet nuget update source evoy -u ${{ github.event.repository.name }} -p ${{ secrets.GH_PACKAGES_TOKEN }} -s https://nuget.pkg.github.com/evoy-as/index.json --store-password-in-clear-text
