@@ -1,0 +1,24 @@
+name: Install the azkv CLI to the current working directory
+
+inputs:
+  private-key:
+    description: "The GitHub App private key to use for authentication"
+    required: true
+    type: string
+
+runs:
+  using: "composite"
+  steps:
+    - name: Generate a GitHub token with permissions to read from azkv
+      id: generate-token
+      uses: actions/create-github-app-token@v1
+      with:
+        app-id: 1113941
+        private-key: ${{ inputs.private-key }}
+        owner: evoy-as
+        repositories: azkv
+    - name: Download and install azkv
+      run: "gh api -H 'Accept: application/vnd.github.raw' -H 'X-GitHub-Api-Version: 2022-11-28' repos/evoy-as/azkv/contents/install.sh | env CI=true bash"
+      shell: bash
+      env:
+        GH_TOKEN: ${{ steps.generate-token.outputs.token }}
