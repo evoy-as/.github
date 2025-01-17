@@ -1,8 +1,12 @@
 name: Install the azkv CLI to the current working directory
 
 inputs:
+  azure-credentials:
+    description: "The Azure RBAC credentials to use for authenticating Azure CLI"
+    required: false
+    type: string
   private-key:
-    description: "The GitHub App private key to use for authentication"
+    description: "The GitHub App private key to use for authentication to download azkv"
     required: true
     type: string
 
@@ -22,3 +26,8 @@ runs:
       shell: bash
       env:
         GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+    - name: "Authenticate Azure CLI"
+      if: ${{ inputs.azure-credentials != '' }}
+      uses: azure/login@v2
+      with:
+        creds: ${{ inputs.azure-credentials }}
