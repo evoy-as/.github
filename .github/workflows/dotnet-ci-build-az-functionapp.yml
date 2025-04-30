@@ -133,7 +133,7 @@ jobs:
               echo "selected_stack_name=${{ env.pulumi_stack_name }}/dev" >> "$GITHUB_OUTPUT"
           fi
     - name: Update infrastructure with Pulumi stack - ${{ steps.pulumi_selected_stack.outputs.selected_stack_name }}
-      uses: pulumi/actions@v4
+      uses: pulumi/actions@v6
       with:
         command: up
         stack-name: ${{ steps.pulumi_selected_stack.outputs.selected_stack_name }}
