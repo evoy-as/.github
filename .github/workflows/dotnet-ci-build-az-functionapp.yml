@@ -86,7 +86,7 @@ jobs:
       uses: evoy-as/.github/.github/actions/code-coverage-summary@main
   deploy:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: build
     outputs: 
       semVer: ${{ env.GitVersion_SemVer }} # $GITHUB_ENV variable from gitversion-tag
@@ -104,15 +104,6 @@ jobs:
           7.0.x
           8.0.x
           9.0.x
-    - name: Add icu support (ubuntu runner)
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y libicu-dev
-    - name: Install OpenSSL 1.1
-      run: |
-        wget http://security.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.24_amd64.deb
-        sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2.24_amd64.deb
-
     - name: Authenticate NuGet
       run: |
           dotnet nuget update source evoy -u ${{ github.event.repository.name }} -p ${{ secrets.GH_PACKAGES_TOKEN }} -s https://nuget.pkg.github.com/evoy-as/index.json --store-password-in-clear-text
@@ -129,10 +120,6 @@ jobs:
         command: publish
         arguments: --no-restore --configuration ${{ env.build_configuration }}
         projects: "**/*FunctionApp.csproj"
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ inputs.dotnet-version }}.x
     - name: Set Pulumi stack
       id: pulumi_selected_stack
       run: |
