@@ -100,7 +100,10 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: ${{ inputs.dotnet-version }}.x
+        dotnet-version: |
+          7.0.x
+          8.0.x
+          9.0.x
     - name: Authenticate NuGet
       run: |
           dotnet nuget update source evoy -u ${{ github.event.repository.name }} -p ${{ secrets.GH_PACKAGES_TOKEN }} -s https://nuget.pkg.github.com/evoy-as/index.json --store-password-in-clear-text
