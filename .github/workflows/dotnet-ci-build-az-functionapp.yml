@@ -16,6 +16,20 @@ on:
             required: false
             type: string
             default: '7.0'
+          deploy-dotnet-versions:
+            required: false
+            type: string
+            description: >
+              Extra .NET SDK versions to install in the deploy job, one per line.
+              That job publishes the function app AND runs `pulumi up`, which builds and
+              then executes the Pulumi program - and that project often targets a
+              different framework than the function app, so more than one SDK is usually
+              needed. `dotnet-version` is always installed in addition to this list, so
+              only the extras belong here.
+            default: |
+              7.0.x
+              8.0.x
+              9.0.x
           check-code-formatting:
             required: false
             type: boolean
@@ -100,10 +114,14 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
+        # dotnet-version is installed alongside deploy-dotnet-versions so the caller's
+        # declared framework is always present. This list used to be hard coded, which
+        # silently ignored dotnet-version: callers on a newer framework only worked when
+        # the runner image happened to preinstall that SDK, and failed with exit code 150
+        # ("SDK not found") when it did not.
         dotnet-version: |
-          7.0.x
-          8.0.x
-          9.0.x
+          ${{ inputs.deploy-dotnet-versions }}
+          ${{ inputs.dotnet-version }}.x
     - name: Authenticate NuGet
       run: |
           dotnet nuget update source evoy -u ${{ github.event.repository.name }} -p ${{ secrets.GH_PACKAGES_TOKEN }} -s https://nuget.pkg.github.com/evoy-as/index.json --store-password-in-clear-text
